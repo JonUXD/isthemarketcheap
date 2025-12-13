@@ -22,17 +22,29 @@ Measure the *speed* of the drop.
     *   **PANIC**: High velocity drop.
     *   **GRIND**: Low velocity drop.
 
-### 3. Risk Matrix (The "Smart" Thresholds)
-Hard-coded thresholds per asset class instead of a global rule.
+### 3. ATH Time Horizon Selector
+**Goal**: Allow users to toggle between "All-Time High", "10-Year High", and "5-Year High".
+*   **The Problem**: Comparing Bitcoin (born 2009) to Gold (trading for centuries) on "All-Time" can be misleading.
+*   **The Solution**: A toggle in the UI.
+*   **Technical Note**: This requires updating the data structure to store multiple ATH values (e.g., `ath_max`, `ath_10y`, `ath_5y`) instead of just one.
 
-| Asset Class | Watch Level | Buy Level | Crisis Level |
-| :--- | :--- | :--- | :--- |
-| **Bonds/Cash** | -2% | -5% | -10% |
-| **World/US Indices** | -5% | -15% | -30% |
-| **Tech/Growth** | -15% | -30% | -50% |
-| **Crypto** | -30% | -50% | -75% |
+## 📖 Methodology & Trust (New Page)
+**Goal**: Build trust by being transparent about data sources and the creator.
+*   **"How it Works"**: Explain the "Discount Logic" (e.g., why -20% is a signal).
+*   **Data Providers**: Explicitly list sources (Yahoo Finance for Stocks/ETFs, CoinGecko for Crypto) to prove data quality.
+*   **About Me**: A personal section with a biography and LinkedIn link to humanize the project.
+
+## 🎨 UI/UX & Branding
+*   **Theme Selector**: Add a Light/Dark mode toggle (currently Dark Mode only).
+*   **Visual Identity**: Develop a unique color palette and "personality" (move away from generic Material UI look).
+*   **Branding**: Brainstorm a proper name and logo (currently "Is the Market Cheap?").
+
+## 🏗️ Architecture & Code Quality
+*   **Component Refactoring**: Break down the monolithic `pages/index.js` into smaller, reusable components (e.g., `AssetTable`, `FilterBar`, `StatusChip`).
+*   **TypeScript Migration**: Move from JavaScript to TypeScript for better type safety as the project grows.
 
 ## 🛠 Feature Ideas
+*   **Volatility Column & Filter**: (As described above).
 *   **Portfolio Mode**: Allow user to input their holdings and see the "Cheapness" of their specific portfolio.
 *   **Email Alerts**: Send a weekly summary or an alert when an asset hits "Signal" status.
 *   **Historical Charting**: Click an asset to see a chart of its Price vs. ATH over time.

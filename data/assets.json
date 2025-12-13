@@ -21,10 +21,10 @@
     "sector": "Crypto",
     "link": "https://www.coingecko.com/en/coins/bitcoin",
     "api_source": "coingecko",
-    "currentPrice": 90360,
+    "currentPrice": 90417,
     "ath": 126080,
     "cheap": true,
-    "currentPriceDate": "2025-12-13T11:45:40.008Z",
+    "currentPriceDate": "2025-12-13T12:22:51.518Z",
     "athDate": "2025-10-06T18:57:42.558Z"
   },
   {
@@ -35,10 +35,10 @@
     "sector": "Crypto",
     "link": "https://www.coingecko.com/en/coins/ethereum",
     "api_source": "coingecko",
-    "currentPrice": 3119.1,
+    "currentPrice": 3120.98,
     "ath": 4946.05,
     "cheap": true,
-    "currentPriceDate": "2025-12-13T11:45:00.000Z",
+    "currentPriceDate": "2025-12-13T12:22:52.197Z",
     "athDate": "2025-08-24T19:21:03.333Z"
   },
   {
@@ -203,10 +203,10 @@
     "sector": "Energy",
     "link": "https://finance.yahoo.com/quote/BZ=F",
     "api_source": "yahoo",
-    "currentPrice": 61.12,
+    "currentPrice": 60.84,
     "ath": 127.77999877929688,
     "cheap": true,
-    "currentPriceDate": "2025-12-12T21:59:40.000Z",
+    "currentPriceDate": "2025-12-12T21:58:53.000Z",
     "athDate": "2008-05-01T04:00:00.000Z"
   },
   {
