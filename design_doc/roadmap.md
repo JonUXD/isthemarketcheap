@@ -35,8 +35,8 @@ Measure the *speed* of the drop.
 *   **About Me**: A personal section with a biography and LinkedIn link to humanize the project.
 
 ## 🎨 UI/UX & Branding
-*   **Theme Selector**: Add a Light/Dark mode toggle (currently Dark Mode only).
-*   **Visual Identity**: Develop a unique color palette and "personality" (move away from generic Material UI look).
+*   **[COMPLETED] Theme Selector**: Add a Light/Dark mode toggle (currently Dark Mode only).
+*   **[COMPLETED] Visual Identity**: Developed a unique color palette and "personality" (Cyber-Finance).
 *   **Branding**: Brainstorm a proper name and logo (currently "Is the Market Cheap?").
 
 ## 🏗️ Architecture & Code Quality
