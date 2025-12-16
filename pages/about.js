@@ -1,27 +1,27 @@
 import React from 'react';
 import {
-    Container,
-    Paper,
-    Box,
-    Typography // Keep Typography just in case
+  Container,
+  Paper,
+  Box,
+  Typography // Keep Typography just in case
 } from '@mui/material';
-import Layout from '../components/Layout';
+import Layout from '../components/layout/Layout';
 import { getMarkdownContent } from '../lib/markdown';
 
 export default function About({ contentHtml }) {
-    return (
-        <Layout title="About - Is the Market Cheap?">
-            <Container maxWidth="md" sx={{ py: 8 }}>
-                {/* Render Markdown HTML */}
-                <Paper sx={{ p: 4, mb: 4, borderRadius: 2 }}>
-                    <div
-                        className="markdown-content"
-                        dangerouslySetInnerHTML={{ __html: contentHtml }}
-                    />
-                </Paper>
+  return (
+    <Layout title="About - Is the Market Cheap?">
+      <Container maxWidth="md" sx={{ py: 8 }}>
+        {/* Render Markdown HTML */}
+        <Paper sx={{ p: 4, mb: 4, borderRadius: 2 }}>
+          <div
+            className="markdown-content"
+            dangerouslySetInnerHTML={{ __html: contentHtml }}
+          />
+        </Paper>
 
-                {/* CSS for Markdown Styles within this div */}
-                <style jsx global>{`
+        {/* CSS for Markdown Styles within this div */}
+        <style jsx global>{`
           .markdown-content h1 {
             font-size: 2rem;
             font-weight: 800;
@@ -52,16 +52,16 @@ export default function About({ contentHtml }) {
             text-decoration: underline;
           }
         `}</style>
-            </Container>
-        </Layout>
-    );
+      </Container>
+    </Layout>
+  );
 }
 
 export async function getStaticProps() {
-    const contentHtml = await getMarkdownContent('about');
-    return {
-        props: {
-            contentHtml
-        }
-    };
+  const contentHtml = await getMarkdownContent('about');
+  return {
+    props: {
+      contentHtml
+    }
+  };
 }

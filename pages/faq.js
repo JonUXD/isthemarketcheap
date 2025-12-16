@@ -8,7 +8,7 @@ import {
     AccordionDetails
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Layout from '../components/Layout';
+import Layout from '../components/layout/Layout';
 import { getFaqContent } from '../lib/markdown';
 
 export default function FAQ({ faqs = [] }) {

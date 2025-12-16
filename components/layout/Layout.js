@@ -18,7 +18,7 @@ import { useTheme } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
-import { ColorModeContext } from '../lib/ColorModeContext';
+import { ColorModeContext } from '../../lib/ColorModeContext';
 
 export default function Layout({ children, title = "Is the Market Cheap?", searchProps = null }) {
     const theme = useTheme();
@@ -70,9 +70,16 @@ export default function Layout({ children, title = "Is the Market Cheap?", searc
                     {/* Using Link component ensures native navigation behavior and SEO */}
                     <Tabs
                         value={currentTab}
-                        textColor="primary"
                         indicatorColor="primary"
-                        sx={{ flexGrow: 1 }}
+                        sx={{
+                            flexGrow: 1,
+                            '& .MuiTab-root': {
+                                color: 'text.primary', // Keep text color consistent
+                            },
+                            '& .Mui-selected': {
+                                color: 'text.primary', // Don't change color when selected
+                            }
+                        }}
                     >
                         <Tab label="Market" value="/" component={Link} href="/" sx={{ fontWeight: 600 }} />
                         <Tab label="FAQ" value="/faq" component={Link} href="/faq" sx={{ fontWeight: 600 }} />
