@@ -1,6 +1,11 @@
 ## Is the market cheap?
 Nobody knows where the market is going, but we know where it has been. We assume that if there was a higher price in the past, there will be a higher one in the future. For all the boggleheads, long time investors and index fund lovers, this web is a simple metric to put the current asset value into perspective.
 
+## What is the logic for the labels?
+**CHEAP**: >20% below all-time high
+**DISCOUNT**: 5-20% below all-time high  
+**NEUTRAL**: Within 5% of all-time high
+
 ## What does 'CHEAP' mean?
 Cheap means that the asset price is below a certain threshold relative to the all time high. That is the only KPI to define whether an asset is cheap.
 
