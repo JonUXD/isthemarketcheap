@@ -1,12 +1,9 @@
 # The Mission
 
-"Is the Market Cheap?" was born out of a simple frustration: financial news is noisy, emotional, and short-term.
+"Is the Market Cheap?" was born out of a simple frustration: we could not find a place where we could see an asset price relative to its all time high. We wanted a simple, at a glance view to track the most important assets for long time investors.
 
-We wanted a dashboard that answers one question: **How far are we from the top?**
+It is proven that doing value averaging is more profitable than dollar cost averaging, and this could be a good way to adjust your monthly contributions into your assets and commodities based on the KPI shown on this page.
 
-This tool aggregates data for Crypto, ETFs, and Commodities to provide a unified view of market discounts. It is open-source, free, and built for transparency.
+# Open Source
 
-## Open Source
-
-This project is built with **Next.js**, **Material UI**, and deployed on **Vercel**. 
-The code is available on [GitHub](https://github.com/jonugartemoso/test-isthemarketcheap) for audit and contribution.
+This project is built with **Next.js**, **Material UI**, and deployed on **Vercel**.

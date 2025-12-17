@@ -1,0 +1,1803 @@
+--- jsconfig.json ---
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
+}
+
+
+--- README.md ---
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+
+[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+
+The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+
+This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+
+
+--- package.json ---
+{
+  "name": "test-isthemarketcheap",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.6",
+    "@mui/material": "^7.3.6",
+    "axios": "^1.13.2",
+    "date-fns": "^4.1.0",
+    "gray-matter": "^4.0.3",
+    "next": "16.0.10",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "remark": "^15.0.1",
+    "remark-html": "^16.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^9",
+    "eslint-config-next": "16.0.10"
+  }
+}
+
+
+--- tools/config.json ---
+{
+    "include_extensions": [
+        ".tsx",
+        ".ts",
+        ".json",
+        ".js",
+        ".css",
+        ".md",
+        ".html"
+    ],
+    "exclude_folders": [
+        "node_modules",
+        "dist",
+        ".git",
+        ".next"
+    ],
+    "exclude_files": [
+        ".env",
+        ".DS_Store",
+        "package-lock.json"
+    ]
+}
+
+--- design_doc/roadmap.md ---
+# Project Roadmap & Future Ideas
+
+This document tracks feature ideas, architectural improvements, and complex enhancements that are planned for the future but not yet implemented.
+
+## 🧠 Smart Status Logic (The "Hedge Fund" Upgrade)
+Currently, the app uses a static percentage drop (e.g., >20% = Signal) to determine status. This is a blunt instrument.
+**Goal:** Implement a context-aware system that understands that a -20% drop in S&P 500 is a crisis, while a -20% drop in Bitcoin is normal noise.
+
+### 1. Volatility Column & Filter
+**Calculation**: Annualized Standard Deviation of daily returns over the last 90 days.
+*   **The Feature**: Add a new column "Volatility" with simple tags:
+    *   **LOW** (e.g., Bonds)
+    *   **MED** (e.g., S&P 500)
+    *   **HIGH** (e.g., Crypto)
+*   **The Filter**: Allow users to filter the table by these tags (e.g., "Show me only HIGH volatility assets").
+*   **Note**: This does **NOT** change the "Status" or "% Below ATH" logic. It is purely an additional data point for the user.
+
+### 2. Velocity Signal (The Crash Detector)
+Measure the *speed* of the drop.
+*   **Scenario**: A -20% drop over 2 years is a "Bear Market" (Grind). A -20% drop in 2 weeks is a "Panic" (Opportunity).
+*   **Status**:
+    *   **PANIC**: High velocity drop.
+    *   **GRIND**: Low velocity drop.
+
+### 3. ATH Time Horizon Selector
+**Goal**: Allow users to toggle between "All-Time High", "10-Year High", and "5-Year High".
+*   **The Problem**: Comparing Bitcoin (born 2009) to Gold (trading for centuries) on "All-Time" can be misleading.
+*   **The Solution**: A toggle in the UI.
+*   **Technical Note**: This requires updating the data structure to store multiple ATH values (e.g., `ath_max`, `ath_10y`, `ath_5y`) instead of just one.
+
+## 📖 Methodology & Trust (New Page)
+**Goal**: Build trust by being transparent about data sources and the creator.
+*   **"How it Works"**: Explain the "Discount Logic" (e.g., why -20% is a signal).
+*   **Data Providers**: Explicitly list sources (Yahoo Finance for Stocks/ETFs, CoinGecko for Crypto) to prove data quality.
+*   **About Me**: A personal section with a biography and LinkedIn link to humanize the project.
+
+## 🎨 UI/UX & Branding
+*   **[COMPLETED] Theme Selector**: Add a Light/Dark mode toggle (currently Dark Mode only).
+*   **[COMPLETED] Visual Identity**: Developed a unique color palette and "personality" (Cyber-Finance).
+*   **Branding**: Brainstorm a proper name and logo (currently "Is the Market Cheap?").
+
+## 🏗️ Architecture & Code Quality
+*   **Component Refactoring**: Break down the monolithic `pages/index.js` into smaller, reusable components (e.g., `AssetTable`, `FilterBar`, `StatusChip`).
+*   **TypeScript Migration**: Move from JavaScript to TypeScript for better type safety as the project grows.
+
+## 🛠 Feature Ideas
+*   **Volatility Column & Filter**: (As described above).
+*   **Portfolio Mode**: Allow user to input their holdings and see the "Cheapness" of their specific portfolio.
+*   **Email Alerts**: Send a weekly summary or an alert when an asset hits "Signal" status.
+*   **Historical Charting**: Click an asset to see a chart of its Price vs. ATH over time.
+
+
+--- content/faq.md ---
+## Is the market cheap?
+Nobody knows where the market is going, but we know where it has been. We know that if there was a higher price in the past, there will be a higher one in the future. For all the boggleheads, long time investors and index fund lovers, this web should be a simple, factual metric of cheapness.
+
+## Is this financial advice?
+No, it is not, it's just a reference point and you decide what to do with it.
+
+## What is the purpose of this page?
+The purpose is to provide a clear, unbiased signal of assets that are trading at a significant discount relative to their historical peak. In a world of noise, 'Price below All-Time High' is a simple, factual metric of cheapness.
+
+## What type of investor is this for?
+This page was created for Bogleheads in mind, that try to follow the full market. Usually they are long time investors doing DCA or regular fund buying. However, for special cycles, the investor may want to invest more money into the market, if the market is cheap. At the same time, if the investor wants to invest a substantial amount of money, they may want to take the relative market place into account.
+
+## Why 'Percent Below ATH' Methodology?
+All-Time High (ATH) represents the maximum price the market was once willing to pay for an asset. Measuring the distance from that peak is a classic way to identify potential value. We assume that the assets showing in this page become more expensive in the long run.
+
+## Why do assets go up in value?
+Over the long term, productive assets (like stocks) tend to appreciate due to economic growth, innovation, and corporate earnings. Scarce assets (like Gold or Bitcoin) may appreciate due to monetary debasement and supply constraints. Assets like Bitcoin should follow a similar pattern as gold, but they are extremely volatile and we are yet to see where they end up.
+
+## Is inflation taken into account?
+Currently, no. The prices are nominal terms (USD). A drop of 20% in nominal terms might be a drop of 25% or more in real purchasing power terms depending on the timeframe..
+
+## What happens with very volatile assets?
+Volatile assets (like Crypto) frequently experience -50% to -80% drawdowns. A 20% drop in Bitcoin is common noise, whereas a 20% drop in the S&P 500 is a major correction. We plan to add a 'Volatility Grade' in the future to help distinguish these scenarios.
+
+## Do all assets behave the same way?
+No, not all assets behave the same way. Some assets are more volatile than others, some are more sensitive to economic conditions than others, and some are more sensitive to geopolitical events than others. Assets are different in nature, and the investor needs to understand very well the definitions of commodities, stocks, index funds, or cryptocurrencies before putting any money in the market.
+
+--- content/about.md ---
+# The Mission
+
+"Is the Market Cheap?" was born out of a simple frustration: financial news is noisy, emotional, and short-term.
+
+We wanted a dashboard that answers one question: **How far are we from the top?**
+
+This tool aggregates data for Crypto, ETFs, and Commodities to provide a unified view of market discounts. It is open-source, free, and built for transparency.
+
+## Open Source
+
+This project is built with **Next.js**, **Material UI**, and deployed on **Vercel**. 
+The code is available on [GitHub](https://github.com/jonugartemoso/test-isthemarketcheap) for audit and contribution.
+
+
+--- styles/globals.css ---
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
+}
+
+
+--- styles/Home.module.css ---
+.page {
+  --background: #fafafa;
+  --foreground: #fff;
+
+  --text-primary: #000;
+  --text-secondary: #666;
+
+  --button-primary-hover: #383838;
+  --button-secondary-hover: #f2f2f2;
+  --button-secondary-border: #ebebeb;
+
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-geist-sans);
+  background-color: var(--background);
+}
+
+.main {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 800px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  background-color: var(--foreground);
+  padding: 120px 60px;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 24px;
+}
+
+.intro h1 {
+  max-width: 320px;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 48px;
+  letter-spacing: -2.4px;
+  text-wrap: balance;
+  color: var(--text-primary);
+}
+
+.intro p {
+  max-width: 440px;
+  font-size: 18px;
+  line-height: 32px;
+  text-wrap: balance;
+  color: var(--text-secondary);
+}
+
+.intro a {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.ctas {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  max-width: 440px;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.ctas a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 128px;
+  border: 1px solid transparent;
+  transition: 0.2s;
+  cursor: pointer;
+  width: fit-content;
+  font-weight: 500;
+}
+
+a.primary {
+  background: var(--text-primary);
+  color: var(--background);
+  gap: 8px;
+}
+
+a.secondary {
+  border-color: var(--button-secondary-border);
+}
+
+/* Enable hover only on non-touch devices */
+@media (hover: hover) and (pointer: fine) {
+  a.primary:hover {
+    background: var(--button-primary-hover);
+    border-color: transparent;
+  }
+
+  a.secondary:hover {
+    background: var(--button-secondary-hover);
+    border-color: transparent;
+  }
+}
+
+@media (max-width: 600px) {
+  .main {
+    padding: 48px 24px;
+  }
+
+  .intro {
+    gap: 16px;
+  }
+
+  .intro h1 {
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -1.92px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .logo {
+    filter: invert();
+  }
+
+  .page {
+    --background: #000;
+    --foreground: #000;
+
+    --text-primary: #ededed;
+    --text-secondary: #999;
+
+    --button-primary-hover: #ccc;
+    --button-secondary-hover: #1a1a1a;
+    --button-secondary-border: #1a1a1a;
+  }
+}
+
+
+--- components/Logo.js ---
+import React from 'react';
+
+export default function Logo({ width = 40, height = 40 }) {
+    return (
+        <svg
+            width={width}
+            height={height}
+            viewBox="0 0 100 100"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-label="Is the Market Cheap logo"
+        >
+            <defs>
+                <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style={{ stopColor: '#00D4FF', stopOpacity: 1 }} />
+                    <stop offset="100%" style={{ stopColor: '#600DB5', stopOpacity: 1 }} />
+                </linearGradient>
+            </defs>
+
+            {/* Smooth curve: rises up, then curves down */}
+            <path
+                d="M 20 80 Q 35 40, 50 30 T 80 50"
+                stroke="url(#logoGradient)"
+                strokeWidth="12"
+                fill="none"
+                strokeLinecap="round"
+            />
+
+            {/* Bigger dot at the end */}
+            <circle
+                cx="80"
+                cy="50"
+                r="14"
+                fill="#600DB5"
+            />
+        </svg>
+    );
+}
+
+
+--- components/layout/Layout.js ---
+import React, { useContext } from 'react';
+import { useRouter } from 'next/router';
+import Head from 'next/head';
+import Link from 'next/link';
+import {
+    AppBar,
+    Toolbar,
+    Typography,
+    Box,
+    Tabs,
+    Tab,
+    IconButton,
+    Tooltip,
+    TextField,
+    InputAdornment
+} from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import SearchIcon from '@mui/icons-material/Search';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+import { ColorModeContext } from '../../lib/ColorModeContext';
+import Logo from '../Logo';
+
+export default function Layout({ children, title = "Is the Market Cheap?", searchProps = null }) {
+    const theme = useTheme();
+    const colorMode = useContext(ColorModeContext);
+    const router = useRouter();
+
+    // Map current path to tab value
+    // Ensure we match strict paths to highlight correctly
+    const currentTab = ['/', '/faq', '/about'].includes(router.pathname)
+        ? router.pathname
+        : '/'; // Default to market if unknown path (or use false)
+
+    return (
+        <>
+            <Head>
+                <title>{title}</title>
+                <meta name="description" content="Track assets trading below ATH" />
+                <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+            </Head>
+
+            <AppBar
+                position="static"
+                color="transparent"
+                elevation={0}
+                sx={{
+                    backgroundColor: theme.palette.background.paper,
+                    borderBottom: `4px solid ${theme.palette.primary.main}`,
+                }}
+            >
+                <Toolbar sx={{ gap: 4, minHeight: 70 }}>
+                    {/* 1. TITLE / LOGO */}
+                    <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '24px' }}>
+                        <Logo width={48} height={48} />
+                        <Typography
+                            variant="h6"
+                            component="div"
+                            sx={{
+                                fontWeight: 800,
+                                letterSpacing: '-0.03em',
+                                whiteSpace: 'nowrap',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            IS THE MARKET CHEAP?
+                        </Typography>
+                    </Link>
+
+                    {/* 2. NAVIGATION TABS */}
+                    {/* Using Link component ensures native navigation behavior and SEO */}
+                    <Tabs
+                        value={currentTab}
+                        textColor='inherit'
+                        indicatorColor="primary"
+                        sx={{
+                            flexGrow: 1,
+                            '& .MuiTab-root': {
+                                color: 'text.primary', // Keep text color consistent
+                            },
+                            '& .Mui-selected': {
+                                color: 'text.primary', // Don't change color when selected
+                            }
+                        }}
+                    >
+                        <Tab label="Market" value="/" component={Link} href="/" sx={{ fontWeight: 600 }} />
+                        <Tab label="FAQ" value="/faq" component={Link} href="/faq" sx={{ fontWeight: 600 }} />
+                        <Tab label="About" value="/about" component={Link} href="/about" sx={{ fontWeight: 600 }} />
+                    </Tabs>
+
+                    {/* 3. SEARCH BAR */}
+                    {searchProps && (
+                        <TextField
+                            variant="outlined"
+                            size="small"
+                            placeholder="Search assets..."
+                            value={searchProps.value}
+                            onChange={searchProps.onChange}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SearchIcon color="action" />
+                                    </InputAdornment>
+                                ),
+                                sx: {
+                                    borderRadius: 2,
+                                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                                    width: { xs: 120, sm: 250 },
+                                    transition: 'width 0.2s',
+                                    '&:focus-within': { width: 300 }
+                                }
+                            }}
+                        />
+                    )}
+
+                    {/* 4. THEME TOGGLE */}
+                    <Tooltip title="Toggle light/dark mode">
+                        <IconButton onClick={colorMode.toggleColorMode} color="inherit">
+                            {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+                        </IconButton>
+                    </Tooltip>
+                </Toolbar>
+            </AppBar>
+
+            {/* PAGE CONTENT */}
+            <Box component="main">
+                {children}
+            </Box>
+
+            {/* FOOTER */}
+            <Box
+                component="footer"
+                sx={{
+                    borderTop: 1,
+                    borderColor: 'divider',
+                    py: 3,
+                    mt: 6,
+                    textAlign: 'center'
+                }}
+            >
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    © {new Date().getFullYear()} Is the Market Cheap? · Open Source
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+                    <Link
+                        href="https://github.com/jonugartemoso/test-isthemarketcheap"
+                        target="_blank"
+                        rel="noopener"
+                        color="text.secondary"
+                        underline="hover"
+                        sx={{ fontSize: '0.875rem' }}
+                    >
+                        GitHub
+                    </Link>
+                    <Typography color="text.secondary">·</Typography>
+                    <Link
+                        href="/about"
+                        color="text.secondary"
+                        underline="hover"
+                        sx={{ fontSize: '0.875rem' }}
+                    >
+                        About
+                    </Link>
+                </Box>
+            </Box>
+        </>
+    );
+}
+
+
+--- components/market/AssetTable.js ---
+import React from 'react';
+import { format } from 'date-fns';
+import {
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Link,
+    TableSortLabel,
+} from '@mui/material';
+import StatusChip from './StatusChip';
+import { formatRelativeTime } from '../../lib/assetHelpers';
+
+export default function AssetTable({ assets, sortConfig, onSort }) {
+    const handleSort = (key) => {
+        let direction = 'desc';
+        if (sortConfig.key === key && sortConfig.direction === 'desc') {
+            direction = 'asc';
+        }
+        onSort({ key, direction });
+    };
+
+    return (
+        <TableContainer
+            component={Paper}
+            elevation={0}
+            sx={{ borderRadius: 2, overflow: 'hidden', border: 1, borderColor: 'divider' }}
+        >
+            <Table sx={{ minWidth: 650 }} aria-label="asset table">
+                <TableHead>
+                    <TableRow>
+                        <TableCell>
+                            <TableSortLabel
+                                active={sortConfig.key === 'friendlyName'}
+                                direction={sortConfig.key === 'friendlyName' ? sortConfig.direction : 'asc'}
+                                onClick={() => handleSort('friendlyName')}
+                            >
+                                Name
+                            </TableSortLabel>
+                        </TableCell>
+                        <TableCell>Asset Name</TableCell>
+                        <TableCell>Category</TableCell>
+                        <TableCell align="right">
+                            <TableSortLabel
+                                active={sortConfig.key === 'currentPrice'}
+                                direction={sortConfig.key === 'currentPrice' ? sortConfig.direction : 'asc'}
+                                onClick={() => handleSort('currentPrice')}
+                            >
+                                Price
+                            </TableSortLabel>
+                        </TableCell>
+                        <TableCell align="right">Price Date</TableCell>
+                        <TableCell align="right">ATH</TableCell>
+                        <TableCell align="right">ATH Date</TableCell>
+                        <TableCell align="right">
+                            <TableSortLabel
+                                active={sortConfig.key === 'percentBelow'}
+                                direction={sortConfig.key === 'percentBelow' ? sortConfig.direction : 'asc'}
+                                onClick={() => handleSort('percentBelow')}
+                            >
+                                % Below ATH
+                            </TableSortLabel>
+                        </TableCell>
+                        <TableCell align="center">Status</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {assets.map((asset) => {
+                        const priceDate = formatRelativeTime(asset.currentPriceDate);
+                        const athDate = formatRelativeTime(asset.athDate);
+
+                        return (
+                            <TableRow
+                                key={asset.name}
+                                sx={{
+                                    '&:last-child td, &:last-child th': { border: 0 },
+                                    '&:hover': { backgroundColor: 'action.hover' }
+                                }}
+                            >
+                                <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
+                                    {asset.friendlyName}
+                                </TableCell>
+                                <TableCell>
+                                    <Link
+                                        href={asset.link}
+                                        target="_blank"
+                                        rel="noopener"
+                                        color="inherit"
+                                        underline="hover"
+                                        sx={{ fontSize: '1rem' }}
+                                    >
+                                        {asset.label} ({asset.name})
+                                    </Link>
+                                </TableCell>
+                                <TableCell>{asset.category}</TableCell>
+                                <TableCell align="right" sx={{ fontFamily: 'monospace', fontSize: '0.95rem' }}>
+                                    ${asset.currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </TableCell>
+                                <TableCell
+                                    align="right"
+                                    sx={{ color: 'text.secondary', fontSize: '0.875rem', fontFamily: 'monospace' }}
+                                    title={asset.currentPriceDate ? format(new Date(asset.currentPriceDate), 'yyyy-MM-dd') : ''}
+                                >
+                                    {priceDate}
+                                </TableCell>
+                                <TableCell align="right" sx={{ fontFamily: 'monospace', fontSize: '0.95rem' }}>
+                                    ${asset.ath.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </TableCell>
+                                <TableCell
+                                    align="right"
+                                    sx={{ color: 'text.secondary', fontSize: '0.875rem', fontFamily: 'monospace' }}
+                                    title={asset.athDate ? format(new Date(asset.athDate), 'yyyy-MM-dd') : ''}
+                                >
+                                    {athDate}
+                                </TableCell>
+                                <TableCell align="right" sx={{ color: 'text.primary', fontFamily: 'monospace', fontWeight: 'bold', fontSize: '1rem' }}>
+                                    {asset.percentBelow > 0 ? `-${asset.percentBelow.toFixed(2)}%` : '0%'}
+                                </TableCell>
+                                <TableCell align="center">
+                                    <StatusChip status={asset.status} />
+                                </TableCell>
+                            </TableRow>
+                        );
+                    })}
+                </TableBody>
+            </Table>
+        </TableContainer>
+    );
+}
+
+
+--- components/market/StatusChip.js ---
+import React from 'react';
+import { Chip } from '@mui/material';
+
+export default function StatusChip({ status }) {
+    if (!status || !status.label) {
+        return null;
+    }
+
+    return (
+        <Chip
+            label={status.label}
+            color={status.color}
+            variant={status.color === 'default' ? 'outlined' : 'filled'}
+            size="small"
+            sx={{
+                minWidth: 70,
+                fontWeight: 'bold',
+                color: status.textColor,
+                borderColor: status.color === 'default' ? 'divider' : undefined
+            }}
+        />
+    );
+}
+
+
+--- components/market/CategoryFilters.js ---
+import React from 'react';
+import { Stack, Chip } from '@mui/material';
+
+const CATEGORIES = ['All', 'Crypto', 'ETFs', 'Commodities'];
+
+export default function CategoryFilters({ selected, onChange }) {
+    return (
+        <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
+            {CATEGORIES.map((category) => (
+                <Chip
+                    key={category}
+                    label={category}
+                    clickable
+                    color={selected === category ? 'primary' : 'default'}
+                    onClick={() => onChange(category)}
+                    sx={{ fontWeight: 600 }}
+                />
+            ))}
+        </Stack>
+    );
+}
+
+
+--- lib/price-service.js ---
+import axios from 'axios';
+
+// Helper to fetch Yahoo Finance data
+async function fetchYahooPrice(symbol) {
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=max`;
+    const response = await axios.get(url);
+    const result = response.data.chart.result[0];
+
+    if (!result) return null;
+
+    const quotes = result.indicators.quote[0];
+    const timestamps = result.timestamp;
+    const prices = quotes.close;
+
+    // Find ATH and its date
+    let ath = -1;
+    let athIndex = -1;
+
+    prices.forEach((price, index) => {
+      if (price != null && price > ath) {
+        ath = price;
+        athIndex = index;
+      }
+    });
+
+    const currentPrice = result.meta.regularMarketPrice;
+    // Yahoo timestamps are in seconds
+    const currentPriceDate = new Date(result.meta.regularMarketTime * 1000).toISOString();
+    const athDate = athIndex !== -1 ? new Date(timestamps[athIndex] * 1000).toISOString() : null;
+
+    return { currentPrice, ath, currentPriceDate, athDate };
+  } catch (error) {
+    console.error(`Error fetching Yahoo data for ${symbol}:`, error.message);
+    return null;
+  }
+}
+
+// Helper to fetch CoinGecko data
+async function fetchCoinGeckoPrice(id) {
+  try {
+    const coinId = id === 'BTC' ? 'bitcoin' : id === 'ETH' ? 'ethereum' : id.toLowerCase();
+
+    // Fetch current price and last updated time
+    const priceUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_last_updated_at=true`;
+    const priceRes = await axios.get(priceUrl);
+    const priceData = priceRes.data[coinId];
+
+    const currentPrice = priceData.usd;
+    const currentPriceDate = priceData.last_updated_at
+      ? new Date(priceData.last_updated_at * 1000).toISOString()
+      : new Date().toISOString();
+
+    // Fetch ATH and ATH date
+    const marketUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinId}`;
+    const marketRes = await axios.get(marketUrl);
+    const marketData = marketRes.data[0];
+
+    const ath = marketData.ath;
+    const athDate = marketData.ath_date; // CoinGecko provides this directly
+    const fullLabel = marketData.name; // "Bitcoin", "Ethereum"
+
+    return { currentPrice, ath, currentPriceDate, athDate, fullLabel };
+  } catch (error) {
+    console.error(`Error fetching CoinGecko data for ${id}:`, error.message);
+    return null;
+  }
+}
+
+export async function fetchAssetPrices(assets) {
+  const updatedAssets = [];
+
+  for (const asset of assets) {
+    let data = null;
+
+    if (asset.api_source === 'yahoo') {
+      data = await fetchYahooPrice(asset.name);
+    } else if (asset.api_source === 'coingecko') {
+      data = await fetchCoinGeckoPrice(asset.name);
+    }
+
+    if (data) {
+      updatedAssets.push({
+        ...asset,
+        currentPrice: data.currentPrice,
+        ath: data.ath,
+        cheap: data.currentPrice < data.ath,
+        currentPriceDate: data.currentPriceDate,
+        athDate: data.athDate,
+        label: data.fullLabel || asset.label
+      });
+    } else {
+      updatedAssets.push(asset);
+    }
+
+    // Slight delay to be polite to APIs during build
+    await new Promise(r => setTimeout(r, 200));
+  }
+
+  return updatedAssets;
+}
+
+
+--- lib/theme.js ---
+import { createTheme } from '@mui/material/styles';
+
+// --- BRAND CONFIGURATION ---
+// "CYBER-FINANCE V2"
+// Readable Dark, with Pure Blue and Deep Violet.
+const BRAND = {
+    dark: {
+        background: '#000000', // Github Dark
+        paper: '#161B22',
+        primary: '#0066FF', // Pure Blue (Requested)
+        secondary: '#600DB5', // Deep Violet (Requested)
+        text: '#F0F6FC',
+        textSec: '#8B949E',
+    },
+    light: {
+        background: '#FFFFFF',
+        paper: '#F8F9FA',
+        primary: '#0066FF', // Pure Blue
+        secondary: '#600DB5', // Deep Violet
+        text: '#111827',
+        textSec: '#5F6368',
+    }
+};
+
+// --- STATUS COLORS ---
+const SIGNALS = {
+    dark: {
+        watch: '#2DD4BF', // Teal-400
+        signal: '#600DB5', // Deep Violet (Requested)
+    },
+    light: {
+        watch: '#0F766E', // Teal-700
+        signal: '#600DB5', // Deep Violet
+    }
+};
+
+const getDesignTokens = (mode) => ({
+    palette: {
+        mode,
+        ...(mode === 'dark'
+            ? {
+                // DARK MODE
+                background: {
+                    default: BRAND.dark.background,
+                    paper: BRAND.dark.paper,
+                },
+                primary: {
+                    main: BRAND.dark.primary,
+                },
+                secondary: {
+                    main: BRAND.dark.secondary,
+                },
+                success: {
+                    main: SIGNALS.dark.watch,
+                },
+                warning: {
+                    main: SIGNALS.dark.signal,
+                },
+                text: {
+                    primary: BRAND.dark.text,
+                    secondary: BRAND.dark.textSec,
+                },
+            }
+            : {
+                // LIGHT MODE
+                background: {
+                    default: BRAND.light.background,
+                    paper: BRAND.light.paper,
+                },
+                primary: {
+                    main: BRAND.light.primary,
+                },
+                secondary: {
+                    main: BRAND.light.secondary,
+                },
+                success: {
+                    main: SIGNALS.light.watch,
+                },
+                warning: {
+                    main: SIGNALS.light.signal,
+                },
+                text: {
+                    primary: BRAND.light.text,
+                    secondary: BRAND.light.textSec,
+                },
+            }),
+    },
+    typography: {
+        fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        h1: {
+            fontSize: '2rem',
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
+        },
+        h2: {
+            fontSize: '1.25rem',
+            fontWeight: 600,
+        },
+        fontFamilyMonospace: '"Roboto Mono", "Fira Code", monospace',
+    },
+    components: {
+        MuiTableCell: {
+            styleOverrides: {
+                root: ({ theme }) => ({
+                    borderBottom: `1px solid ${theme.palette.mode === 'dark' ? '#30363D' : '#E5E7EB'}`,
+                    padding: '8px 12px',
+                    fontSize: '0.875rem',
+                }),
+                head: ({ theme }) => ({
+                    fontWeight: 600,
+                    textTransform: 'none',
+                    fontSize: '0.8125rem',
+                    backgroundColor: theme.palette.mode === 'dark' ? '#161B22' : '#F1F3F4',
+                    color: theme.palette.text.secondary,
+                }),
+            },
+        },
+        MuiChip: {
+            styleOverrides: {
+                root: {
+                    fontWeight: 600,
+                    borderRadius: 4,
+                    height: 24,
+                    fontSize: '0.75rem',
+                },
+            },
+        },
+        MuiAppBar: {
+            styleOverrides: {
+                root: ({ theme }) => ({
+                    backgroundColor: theme.palette.background.paper, // Match table background
+                    backgroundImage: 'none',
+                    backdropFilter: 'none',
+                    borderBottom: 'none',
+                    boxShadow: 'none',
+                })
+            }
+        },
+        MuiPaper: {
+            styleOverrides: {
+                root: {
+                    backgroundImage: 'none',
+                    border: `1px solid ${mode === 'dark' ? '#30363D' : '#E0E0E0'}`,
+                }
+            }
+        }
+    },
+});
+
+export const getTheme = (mode) => createTheme(getDesignTokens(mode));
+
+
+--- lib/assetHelpers.js ---
+import { intervalToDuration } from 'date-fns';
+
+/**
+ * Calculate status based on percent below ATH
+ */
+export function calculateStatus(percentBelow) {
+    if (percentBelow > 20) {
+        return { label: 'WATCH', color: 'secondary', textColor: '#fff' };
+    } else if (percentBelow > 5) {
+        return { label: 'WATCH', color: 'default', textColor: '#fff' };
+    }
+    return { label: '', color: 'default', textColor: '#666' };
+}
+
+/**
+ * Process assets: add calculated fields (percentBelow, status)
+ */
+export function enrichAssets(assets) {
+    return assets.map(asset => {
+        const percentBelow = ((asset.ath - asset.currentPrice) / asset.ath) * 100;
+        const status = calculateStatus(percentBelow);
+        return { ...asset, percentBelow, status };
+    });
+}
+
+/**
+ * Filter assets by category
+ */
+export function filterByCategory(assets, category) {
+    if (category === 'All') return assets;
+
+    if (category === 'Crypto') {
+        return assets.filter(a => a.sector === 'Crypto');
+    } else if (category === 'ETFs') {
+        return assets.filter(a => a.category === 'ETF' && a.sector !== 'Crypto');
+    } else if (category === 'Commodities') {
+        return assets.filter(a => a.category === 'Commodity' || a.category === 'Commodity ETF');
+    }
+
+    return assets;
+}
+
+/**
+ * Filter assets by search term
+ */
+export function filterBySearch(assets, searchTerm) {
+    if (!searchTerm) return assets;
+
+    const lowerTerm = searchTerm.toLowerCase();
+    return assets.filter(a =>
+        a.name.toLowerCase().includes(lowerTerm) ||
+        a.label.toLowerCase().includes(lowerTerm) ||
+        (a.friendlyName && a.friendlyName.toLowerCase().includes(lowerTerm))
+    );
+}
+
+/**
+ * Sort assets by key and direction
+ */
+export function sortAssets(assets, sortConfig) {
+    const sorted = [...assets];
+    sorted.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+            return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+            return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+    });
+    return sorted;
+}
+
+/**
+ * Process assets through all filters and sorting
+ */
+export function processAssets(assets, searchTerm, category, sortConfig) {
+    let processed = enrichAssets(assets);
+    processed = filterByCategory(processed, category);
+    processed = filterBySearch(processed, searchTerm);
+    processed = sortAssets(processed, sortConfig);
+    return processed;
+}
+
+/**
+ * Format date as relative time (e.g., "2y 3mo ago")
+ */
+export function formatRelativeTime(dateStr) {
+    if (!dateStr) return '-';
+    const start = new Date(dateStr);
+    const end = new Date();
+
+    if (isNaN(start.getTime())) return '-';
+    if (start > end) return 'Just now';
+
+    try {
+        const duration = intervalToDuration({ start, end });
+
+        if (duration.years > 0) {
+            return `${duration.years}y ${duration.months > 0 ? duration.months + 'mo' : ''} ago`;
+        }
+        if (duration.months > 0) {
+            return `${duration.months}mo ${duration.days > 0 ? duration.days + 'd' : ''} ago`;
+        }
+        if (duration.days > 0) {
+            return `${duration.days}d ${duration.hours > 0 ? duration.hours + 'h' : ''} ago`;
+        }
+        if (duration.hours > 0) {
+            return `${duration.hours}h ago`;
+        }
+        if (duration.minutes > 0) {
+            return `${duration.minutes}m ago`;
+        }
+        return 'Just now';
+    } catch (e) {
+        console.error("Date formatting error", e);
+        return '-';
+    }
+}
+
+
+--- lib/ColorModeContext.js ---
+import { createContext } from 'react';
+
+export const ColorModeContext = createContext({
+    toggleColorMode: () => { },
+    mode: 'dark',
+});
+
+
+--- lib/markdown.js ---
+import fs from 'fs';
+import path from 'path';
+import { remark } from 'remark';
+import html from 'remark-html';
+
+const contentDirectory = path.join(process.cwd(), 'content');
+
+export async function getMarkdownContent(filename) {
+    const fullPath = path.join(contentDirectory, `${filename}.md`);
+    const fileContents = fs.readFileSync(fullPath, 'utf8');
+
+    // Use remark to convert markdown into HTML string
+    const processedContent = await remark()
+        .use(html)
+        .process(fileContents);
+    const contentHtml = processedContent.toString();
+
+    return contentHtml;
+}
+
+export function getFaqContent() {
+    const fullPath = path.join(contentDirectory, 'faq.md');
+    const fileContents = fs.readFileSync(fullPath, 'utf8');
+
+    // Simple parsing for FAQ structure:
+    // Split by "## " headers. 
+    // Each chunk is a question (header) + answer (body).
+
+    const sections = fileContents.split(/^## /m).slice(1); // Remove empty start
+
+    const faqs = sections.map(section => {
+        const [question, ...answerLines] = section.split('\n');
+        const answer = answerLines.join('\n').trim();
+        return {
+            question: question.trim(),
+            answer: answer
+        };
+    });
+
+    return faqs;
+}
+
+
+--- data/assets.json ---
+[
+  {
+    "name": "SPY",
+    "friendlyName": "S&P 500",
+    "category": "ETF",
+    "label": "S&P 500 ETF",
+    "sector": "Index Fund",
+    "link": "https://finance.yahoo.com/quote/SPY",
+    "api_source": "yahoo",
+    "currentPrice": 681.76,
+    "ath": 689.1699829101562,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:00:00.000Z",
+    "athDate": "2025-12-01T05:00:00.000Z"
+  },
+  {
+    "name": "BTC",
+    "friendlyName": "Bitcoin",
+    "category": "Crypto",
+    "label": "Bitcoin",
+    "sector": "Crypto",
+    "link": "https://www.coingecko.com/en/coins/bitcoin",
+    "api_source": "coingecko",
+    "currentPrice": 90417,
+    "ath": 126080,
+    "cheap": true,
+    "currentPriceDate": "2025-12-13T12:22:51.518Z",
+    "athDate": "2025-10-06T18:57:42.558Z"
+  },
+  {
+    "name": "ETH",
+    "friendlyName": "Ethereum",
+    "category": "Crypto",
+    "label": "Ethereum",
+    "sector": "Crypto",
+    "link": "https://www.coingecko.com/en/coins/ethereum",
+    "api_source": "coingecko",
+    "currentPrice": 3120.98,
+    "ath": 4946.05,
+    "cheap": true,
+    "currentPriceDate": "2025-12-13T12:22:52.197Z",
+    "athDate": "2025-08-24T19:21:03.333Z"
+  },
+  {
+    "name": "GLD",
+    "friendlyName": "Gold",
+    "category": "Commodity ETF",
+    "label": "Gold ETF",
+    "sector": "Gold",
+    "link": "https://finance.yahoo.com/quote/GLD",
+    "api_source": "yahoo",
+    "currentPrice": 395.44,
+    "ath": 395.44000244140625,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:00:00.000Z",
+    "athDate": "2025-12-12T21:00:00.000Z"
+  },
+  {
+    "name": "SLV",
+    "friendlyName": "Silver",
+    "category": "Commodity ETF",
+    "label": "Silver ETF",
+    "sector": "Silver",
+    "link": "https://finance.yahoo.com/quote/SLV",
+    "api_source": "yahoo",
+    "currentPrice": 56.1,
+    "ath": 57.619998931884766,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:00:00.000Z",
+    "athDate": "2025-12-01T05:00:00.000Z"
+  },
+  {
+    "name": "URTH",
+    "friendlyName": "World Stocks",
+    "category": "ETF",
+    "label": "MSCI World ETF",
+    "sector": "Global Stocks",
+    "link": "https://finance.yahoo.com/quote/URTH",
+    "api_source": "yahoo",
+    "currentPrice": 186.09,
+    "ath": 187.85000610351562,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:00:00.000Z",
+    "athDate": "2025-12-01T05:00:00.000Z"
+  },
+  {
+    "name": "QQQ",
+    "friendlyName": "Nasdaq 100",
+    "category": "ETF",
+    "label": "Nasdaq 100",
+    "sector": "Tech / Growth",
+    "link": "https://finance.yahoo.com/quote/QQQ",
+    "api_source": "yahoo",
+    "currentPrice": 613.62,
+    "ath": 629.0700073242188,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:00:01.000Z",
+    "athDate": "2025-10-01T04:00:00.000Z"
+  },
+  {
+    "name": "VGK",
+    "friendlyName": "Europe",
+    "category": "ETF",
+    "label": "Europe ETF",
+    "sector": "Developed Europe",
+    "link": "https://finance.yahoo.com/quote/VGK",
+    "api_source": "yahoo",
+    "currentPrice": 82.69,
+    "ath": 83.2300033569336,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:00:00.000Z",
+    "athDate": "2025-12-01T05:00:00.000Z"
+  },
+  {
+    "name": "IWM",
+    "friendlyName": "Small Caps",
+    "category": "ETF",
+    "label": "Russell 2000",
+    "sector": "Small Cap US",
+    "link": "https://finance.yahoo.com/quote/IWM",
+    "api_source": "yahoo",
+    "currentPrice": 253.85,
+    "ath": 257.79998779296875,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:00:00.000Z",
+    "athDate": "2025-12-01T05:00:00.000Z"
+  },
+  {
+    "name": "EEM",
+    "friendlyName": "Emerging Markets",
+    "category": "ETF",
+    "label": "Emerging Markets",
+    "sector": "Emerging Markets",
+    "link": "https://finance.yahoo.com/quote/EEM",
+    "api_source": "yahoo",
+    "currentPrice": 54.24,
+    "ath": 55.72999954223633,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:00:00.000Z",
+    "athDate": "2007-10-01T04:00:00.000Z"
+  },
+  {
+    "name": "VNQ",
+    "friendlyName": "Real Estate",
+    "category": "ETF",
+    "label": "Real Estate ETF",
+    "sector": "Real Estate / REITs",
+    "link": "https://finance.yahoo.com/quote/VNQ",
+    "api_source": "yahoo",
+    "currentPrice": 89.45,
+    "ath": 116.01000213623047,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:00:00.000Z",
+    "athDate": "2021-12-01T05:00:00.000Z"
+  },
+  {
+    "name": "EWJ",
+    "friendlyName": "Japan",
+    "category": "ETF",
+    "label": "Japan ETF",
+    "sector": "Japan",
+    "link": "https://finance.yahoo.com/quote/EWJ",
+    "api_source": "yahoo",
+    "currentPrice": 84,
+    "ath": 84.22000122070312,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:00:00.000Z",
+    "athDate": "2025-12-01T05:00:00.000Z"
+  },
+  {
+    "name": "MCHI",
+    "friendlyName": "China",
+    "category": "ETF",
+    "label": "China ETF",
+    "sector": "China",
+    "link": "https://finance.yahoo.com/quote/MCHI",
+    "api_source": "yahoo",
+    "currentPrice": 61.52,
+    "ath": 87.5199966430664,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:00:01.000Z",
+    "athDate": "2021-01-01T05:00:00.000Z"
+  },
+  {
+    "name": "AAXJ",
+    "friendlyName": "Asia ex-Japan",
+    "category": "ETF",
+    "label": "Asia ex-Japan",
+    "sector": "Asia",
+    "link": "https://finance.yahoo.com/quote/AAXJ",
+    "api_source": "yahoo",
+    "currentPrice": 91.88,
+    "ath": 94.7699966430664,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:00:02.000Z",
+    "athDate": "2025-10-01T04:00:00.000Z"
+  },
+  {
+    "name": "BZ=F",
+    "friendlyName": "Brent Crude",
+    "category": "Commodity",
+    "label": "Brent Crude Oil",
+    "sector": "Energy",
+    "link": "https://finance.yahoo.com/quote/BZ=F",
+    "api_source": "yahoo",
+    "currentPrice": 60.84,
+    "ath": 127.77999877929688,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T21:58:53.000Z",
+    "athDate": "2008-05-01T04:00:00.000Z"
+  },
+  {
+    "name": "BITW",
+    "friendlyName": "Crypto Index",
+    "category": "ETF",
+    "label": "Bitwise 10 Crypto Index",
+    "sector": "Crypto",
+    "link": "https://finance.yahoo.com/quote/BITW",
+    "api_source": "yahoo",
+    "currentPrice": 61.18,
+    "ath": 136,
+    "cheap": true,
+    "currentPriceDate": "2025-12-12T20:59:03.000Z",
+    "athDate": "2021-02-15T05:00:00.000Z"
+  }
+]
+
+--- pages/_app.js ---
+import React, { useState, useMemo } from 'react';
+import "@/styles/globals.css";
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { ColorModeContext } from '../lib/ColorModeContext';
+import { getTheme } from '../lib/theme';
+
+export default function App({ Component, pageProps }) {
+  // Default to 'dark' mode
+  const [mode, setMode] = useState('dark');
+
+  const colorMode = useMemo(
+    () => ({
+      toggleColorMode: () => {
+        setMode((prevMode) => (prevMode === 'light' ? 'dark' : 'light'));
+      },
+      mode,
+    }),
+    [mode]
+  );
+
+  const theme = useMemo(() => getTheme(mode), [mode]);
+
+  return (
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Component {...pageProps} />
+      </ThemeProvider>
+    </ColorModeContext.Provider>
+  );
+}
+
+
+--- pages/about.js ---
+import React from 'react';
+import {
+  Container,
+  Paper,
+  Box,
+  Typography // Keep Typography just in case
+} from '@mui/material';
+import Layout from '../components/layout/Layout';
+import { getMarkdownContent } from '../lib/markdown';
+
+export default function About({ contentHtml }) {
+  return (
+    <Layout title="About - Is the Market Cheap?">
+      <Container maxWidth="md" sx={{ py: 8 }}>
+        {/* Render Markdown HTML */}
+        <Paper sx={{ p: 4, mb: 4, borderRadius: 2 }}>
+          <div
+            className="markdown-content"
+            dangerouslySetInnerHTML={{ __html: contentHtml }}
+          />
+        </Paper>
+
+        {/* CSS for Markdown Styles within this div */}
+        <style jsx global>{`
+          .markdown-content h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: inherit;
+          }
+          .markdown-content h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: inherit;
+          }
+          .markdown-content p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            color: inherit;
+          }
+          .markdown-content strong {
+            font-weight: 700;
+          }
+          .markdown-content a {
+            color: #2979FF;
+            text-decoration: none;
+          }
+          .markdown-content a:hover {
+            text-decoration: underline;
+          }
+        `}</style>
+      </Container>
+    </Layout>
+  );
+}
+
+export async function getStaticProps() {
+  const contentHtml = await getMarkdownContent('about');
+  return {
+    props: {
+      contentHtml
+    }
+  };
+}
+
+
+--- pages/index.js ---
+import React, { useState } from 'react';
+import fs from 'fs';
+import path from 'path';
+import { fetchAssetPrices } from '../lib/price-service';
+import { processAssets } from '../lib/assetHelpers';
+import Layout from '../components/layout/Layout';
+import CategoryFilters from '../components/market/CategoryFilters';
+import AssetTable from '../components/market/AssetTable';
+import { Container } from '@mui/material';
+
+export default function Home({ assets }) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('All');
+  const [sortConfig, setSortConfig] = useState({ key: 'percentBelow', direction: 'desc' });
+
+  // Process assets using helper function
+  const processedAssets = React.useMemo(() => {
+    return processAssets(assets, searchTerm, filterCategory, sortConfig);
+  }, [assets, searchTerm, filterCategory, sortConfig]);
+
+  return (
+    <Layout
+      searchProps={{
+        value: searchTerm,
+        onChange: (e) => setSearchTerm(e.target.value)
+      }}
+    >
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <CategoryFilters
+          selected={filterCategory}
+          onChange={setFilterCategory}
+        />
+        <AssetTable
+          assets={processedAssets}
+          sortConfig={sortConfig}
+          onSort={setSortConfig}
+        />
+      </Container>
+    </Layout>
+  );
+}
+
+export async function getStaticProps() {
+  const filePath = path.join(process.cwd(), 'data', 'assets.json');
+  const fileData = fs.readFileSync(filePath, 'utf8');
+  const assets = JSON.parse(fileData);
+
+  // Fetch updated prices at build time / revalidation time
+  const updatedAssets = await fetchAssetPrices(assets);
+
+  return {
+    props: {
+      assets: updatedAssets,
+    },
+    // Next.js will attempt to re-generate the page:
+    // - When a request comes in
+    // - At most once every 86400 seconds (24 hours)
+    revalidate: 86400,
+  };
+}
+
+
+--- pages/faq.js ---
+import React from 'react';
+import {
+    Container,
+    Typography,
+    Box,
+    Accordion,
+    AccordionSummary,
+    AccordionDetails
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Layout from '../components/layout/Layout';
+import { getFaqContent } from '../lib/markdown';
+
+export default function FAQ({ faqs = [] }) {
+    // Defensive check: if faqs is not an array, default to empty
+    const safeFaqs = Array.isArray(faqs) ? faqs : [];
+
+    if (!Array.isArray(faqs)) {
+        console.warn("FAQ data invalid:", faqs);
+    }
+
+    return (
+        <Layout title="FAQ - Is the Market Cheap?">
+            <Container maxWidth="md" sx={{ py: 8 }}>
+                <Box>
+                    {safeFaqs.map((faq, index) => (
+                        <Accordion key={index} sx={{
+                            mb: 2,
+                            backgroundColor: 'background.paper',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            boxShadow: 'none',
+                            '&:before': { display: 'none' }
+                        }}>
+                            <AccordionSummary
+                                expandIcon={<ExpandMoreIcon color="primary" />}
+                                aria-controls={`panel${index}-content`}
+                                id={`panel${index}-header`}
+                            >
+                                <Typography variant="h6" sx={{ fontWeight: 600 }}>{faq.question}</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                                <Typography color="text.secondary" style={{ whiteSpace: 'pre-line' }}>
+                                    {faq.answer}
+                                </Typography>
+                            </AccordionDetails>
+                        </Accordion>
+                    ))}
+                    {safeFaqs.length === 0 && (
+                        <Typography color="error">
+                            No FAQ content found. Please check content/faq.md.
+                        </Typography>
+                    )}
+                </Box>
+            </Container>
+        </Layout>
+    );
+}
+
+export async function getStaticProps() {
+    try {
+        const faqs = getFaqContent();
+        return {
+            props: {
+                faqs: Array.isArray(faqs) ? faqs : []
+            }
+        };
+    } catch (error) {
+        console.error("Error fetching FAQ content:", error);
+        return {
+            props: {
+                faqs: []
+            }
+        };
+    }
+}
+
+
+--- pages/_document.js ---
+import { Html, Head, Main, NextScript } from "next/document";
+
+export default function Document() {
+  return (
+    <Html lang="en">
+      <Head />
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  );
+}
+
+
+--- pages/api/hello.js ---
+// Next.js API route support: https://nextjs.org/docs/api-routes/introduction
+
+export default function handler(req, res) {
+  res.status(200).json({ name: "John Doe" });
+}
+
+
+================================================================================
+METADATA
+================================================================================
+
+Files Parsed: 26
+Total Characters: 54963
+
+File List:
+----------------------------------------
+README.md: 1899 characters
+components/Logo.js: 1142 characters
+components/layout/Layout.js: 6841 characters
+components/market/AssetTable.js: 6598 characters
+components/market/CategoryFilters.js: 676 characters
+components/market/StatusChip.js: 610 characters
+content/about.md: 593 characters
+content/faq.md: 2802 characters
+data/assets.json: 6246 characters
+design_doc/roadmap.md: 3162 characters
+jsconfig.json: 73 characters
+lib/ColorModeContext.js: 142 characters
+lib/assetHelpers.js: 3584 characters
+lib/markdown.js: 1240 characters
+lib/price-service.js: 3207 characters
+lib/theme.js: 4521 characters
+package.json: 649 characters
+pages/_app.js: 889 characters
+pages/_document.js: 233 characters
+pages/about.js: 1740 characters
+pages/api/hello.js: 171 characters
+pages/faq.js: 2654 characters
+pages/index.js: 1911 characters
+styles/Home.module.css: 2426 characters
+styles/globals.css: 608 characters
+tools/config.json: 346 characters
+
+Directory Structure:
+----------------------------------------
+test-isthemarketcheap/
+├── components/
+│   ├── layout/
+│   │   └── Layout.js
+│   ├── market/
+│   │   ├── AssetTable.js
+│   │   ├── CategoryFilters.js
+│   │   └── StatusChip.js
+│   └── Logo.js
+├── content/
+│   ├── about.md
+│   └── faq.md
+├── data/
+│   └── assets.json
+├── design_doc/
+│   └── roadmap.md
+├── lib/
+│   ├── ColorModeContext.js
+│   ├── assetHelpers.js
+│   ├── markdown.js
+│   ├── price-service.js
+│   └── theme.js
+├── pages/
+│   ├── api/
+│   │   └── hello.js
+│   ├── _app.js
+│   ├── _document.js
+│   ├── about.js
+│   ├── faq.js
+│   └── index.js
+├── public/
+├── styles/
+│   ├── Home.module.css
+│   └── globals.css
+├── tools/
+│   └── config.json
+├── README.md
+├── jsconfig.json
+└── package.json
+
+Generated at:
+Local: 2025-12-17 07:20:05 
+UTC:   2025-12-17 06:20:05 UTC
+Timestamp: 1765952405
