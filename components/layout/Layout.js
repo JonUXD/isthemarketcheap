@@ -19,6 +19,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { ColorModeContext } from '../../lib/ColorModeContext';
+import Logo from '../Logo';
 
 export default function Layout({ children, title = "Is the Market Cheap?", searchProps = null }) {
     const theme = useTheme();
@@ -36,7 +37,7 @@ export default function Layout({ children, title = "Is the Market Cheap?", searc
             <Head>
                 <title>{title}</title>
                 <meta name="description" content="Track assets trading below ATH" />
-                <link rel="icon" href="/favicon.ico" />
+                <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
             </Head>
 
             <AppBar
@@ -48,9 +49,10 @@ export default function Layout({ children, title = "Is the Market Cheap?", searc
                     borderBottom: `4px solid ${theme.palette.primary.main}`,
                 }}
             >
-                <Toolbar sx={{ gap: 2, minHeight: 70 }}>
+                <Toolbar sx={{ gap: 4, minHeight: 70 }}>
                     {/* 1. TITLE / LOGO */}
-                    <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '24px' }}>
+                        <Logo width={48} height={48} />
                         <Typography
                             variant="h6"
                             component="div"
@@ -58,7 +60,6 @@ export default function Layout({ children, title = "Is the Market Cheap?", searc
                                 fontWeight: 800,
                                 letterSpacing: '-0.03em',
                                 whiteSpace: 'nowrap',
-                                mr: 2,
                                 cursor: 'pointer'
                             }}
                         >
@@ -70,6 +71,7 @@ export default function Layout({ children, title = "Is the Market Cheap?", searc
                     {/* Using Link component ensures native navigation behavior and SEO */}
                     <Tabs
                         value={currentTab}
+                        textColor='inherit'
                         indicatorColor="primary"
                         sx={{
                             flexGrow: 1,
@@ -123,6 +125,43 @@ export default function Layout({ children, title = "Is the Market Cheap?", searc
             {/* PAGE CONTENT */}
             <Box component="main">
                 {children}
+            </Box>
+
+            {/* FOOTER */}
+            <Box
+                component="footer"
+                sx={{
+                    borderTop: 1,
+                    borderColor: 'divider',
+                    py: 3,
+                    mt: 6,
+                    textAlign: 'center'
+                }}
+            >
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    © {new Date().getFullYear()} Is the Market Cheap? · Open Source
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+                    <Link
+                        href="https://github.com/jonugartemoso/test-isthemarketcheap"
+                        target="_blank"
+                        rel="noopener"
+                        color="text.secondary"
+                        underline="hover"
+                        sx={{ fontSize: '0.875rem' }}
+                    >
+                        GitHub
+                    </Link>
+                    <Typography color="text.secondary">·</Typography>
+                    <Link
+                        href="/about"
+                        color="text.secondary"
+                        underline="hover"
+                        sx={{ fontSize: '0.875rem' }}
+                    >
+                        About
+                    </Link>
+                </Box>
             </Box>
         </>
     );
