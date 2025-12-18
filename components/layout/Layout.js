@@ -52,7 +52,7 @@ export default function Layout({ children, title = "Is the Market Cheap?", searc
             >
                 <Toolbar sx={{ gap: 4, minHeight: 70 }}>
                     {/* 1. TITLE / LOGO */}
-                    <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '24px' }}>
                         <Logo width={40} height={40} />
                         <BrandText height={32} />
                     </Link>
