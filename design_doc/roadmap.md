@@ -2,32 +2,6 @@
 
 This document tracks feature ideas, architectural improvements, and complex enhancements that are planned for the future but not yet implemented.
 
-## 🧠 Smart Status Logic (The "Hedge Fund" Upgrade)
-Currently, the app uses a static percentage drop (e.g., >20% = Signal) to determine status. This is a blunt instrument.
-**Goal:** Implement a context-aware system that understands that a -20% drop in S&P 500 is a crisis, while a -20% drop in Bitcoin is normal noise.
-
-### 1. Volatility Column & Filter
-**Calculation**: Annualized Standard Deviation of daily returns over the last 90 days.
-*   **The Feature**: Add a new column "Volatility" with simple tags:
-    *   **LOW** (e.g., Bonds)
-    *   **MED** (e.g., S&P 500)
-    *   **HIGH** (e.g., Crypto)
-*   **The Filter**: Allow users to filter the table by these tags (e.g., "Show me only HIGH volatility assets").
-*   **Note**: This does **NOT** change the "Status" or "% Below ATH" logic. It is purely an additional data point for the user.
-
-### 2. Velocity Signal (The Crash Detector)
-Measure the *speed* of the drop.
-*   **Scenario**: A -20% drop over 2 years is a "Bear Market" (Grind). A -20% drop in 2 weeks is a "Panic" (Opportunity).
-*   **Status**:
-    *   **PANIC**: High velocity drop.
-    *   **GRIND**: Low velocity drop.
-
-### 3. ATH Time Horizon Selector
-**Goal**: Allow users to toggle between "All-Time High", "10-Year High", and "5-Year High".
-*   **The Problem**: Comparing Bitcoin (born 2009) to Gold (trading for centuries) on "All-Time" can be misleading.
-*   **The Solution**: A toggle in the UI.
-*   **Technical Note**: This requires updating the data structure to store multiple ATH values (e.g., `ath_max`, `ath_10y`, `ath_5y`) instead of just one.
-
 ## 📖 Methodology & Trust (New Page)
 **Goal**: Build trust by being transparent about data sources and the creator.
 *   **"How it Works"**: Explain the "Discount Logic" (e.g., why -20% is a signal).
