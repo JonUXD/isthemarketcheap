@@ -107,6 +107,32 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/b
     ]
 }
 
+--- design_doc/deployPlan.md ---
+# Vercel Production Deployment Plan
+
+## Phase 1: Pre-Deployment (Local)
+1. Fix API timeout risk in `lib/price-service.js`
+2. Create `.env.local` with any API keys
+3. Create `next.config.js` with basic config
+4. Test `npm run build` locally
+
+## Phase 2: Vercel Setup
+5. Connect GitHub repo at vercel.com
+6. Configure build settings:
+   - Build Command: `npm run build`
+   - Output Directory: `.next`
+7. Add environment variables in Vercel dashboard
+
+## Phase 3: Deployment
+8. Deploy first version (auto from GitHub)
+9. Verify ISR working (24h revalidation)
+
+## Phase 4: Post-Deployment
+10. Add monitoring (Vercel Analytics)
+11. Set up custom domain (optional)
+
+## Time: 30-60 minutes
+
 --- design_doc/roadmap.md ---
 # Project Roadmap & Future Ideas
 
@@ -162,13 +188,24 @@ Measure the *speed* of the drop.
 
 --- content/faq.md ---
 ## Is the market cheap?
-Nobody knows where the market is going, but we know where it has been. We know that if there was a higher price in the past, there will be a higher one in the future. For all the boggleheads, long time investors and index fund lovers, this web should be a simple, factual metric of cheapness.
+Nobody knows where the market is going, but we know where it has been. We assume that if there was a higher price in the past, there will be a higher one in the future. For all the boggleheads, long time investors and index fund lovers, this web is a simple metric to put the current asset value into perspective.
+
+## What is the logic for the labels?
+**CHEAP**: >20% below all-time high
+**DISCOUNT**: 5-20% below all-time high  
+**NEUTRAL**: Within 5% of all-time high
+
+## What does 'CHEAP' mean?
+Cheap means that the asset price is below a certain threshold relative to the all time high. That is the only KPI to define whether an asset is cheap.
+
+## Should I buy the asset if the Status says 'CHEAP'?
+No, this is just a comparison with the all time high, it is not a signal to buy or sell. 
 
 ## Is this financial advice?
 No, it is not, it's just a reference point and you decide what to do with it.
 
-## What is the purpose of this page?
-The purpose is to provide a clear, unbiased signal of assets that are trading at a significant discount relative to their historical peak. In a world of noise, 'Price below All-Time High' is a simple, factual metric of cheapness.
+## What is the criteria for the asset selection?
+We assume that the selected assets tend to appreciate in the future. Individual stocks are out of the picture as companies are historically very likely to dissapear. We track assets that represent economic growth, or assets that are scarce and have value just because of it limited availability.
 
 ## What type of investor is this for?
 This page was created for Bogleheads in mind, that try to follow the full market. Usually they are long time investors doing DCA or regular fund buying. However, for special cycles, the investor may want to invest more money into the market, if the market is cheap. At the same time, if the investor wants to invest a substantial amount of money, they may want to take the relative market place into account.
@@ -180,7 +217,7 @@ All-Time High (ATH) represents the maximum price the market was once willing to 
 Over the long term, productive assets (like stocks) tend to appreciate due to economic growth, innovation, and corporate earnings. Scarce assets (like Gold or Bitcoin) may appreciate due to monetary debasement and supply constraints. Assets like Bitcoin should follow a similar pattern as gold, but they are extremely volatile and we are yet to see where they end up.
 
 ## Is inflation taken into account?
-Currently, no. The prices are nominal terms (USD). A drop of 20% in nominal terms might be a drop of 25% or more in real purchasing power terms depending on the timeframe..
+Currently, no. The prices are nominal terms (USD). A drop of 20% in nominal terms might be a drop of 25% or more in real purchasing power terms depending on the timeframe. Please take into acccount that the dollar value decreases over time and that is a factor that explains why asset price in dollars goes up.
 
 ## What happens with very volatile assets?
 Volatile assets (like Crypto) frequently experience -50% to -80% drawdowns. A 20% drop in Bitcoin is common noise, whereas a 20% drop in the S&P 500 is a major correction. We plan to add a 'Volatility Grade' in the future to help distinguish these scenarios.
@@ -191,16 +228,13 @@ No, not all assets behave the same way. Some assets are more volatile than other
 --- content/about.md ---
 # The Mission
 
-"Is the Market Cheap?" was born out of a simple frustration: financial news is noisy, emotional, and short-term.
+"Is the Market Cheap?" was born out of a simple frustration: we could not find a place where we could see an asset price relative to its all time high. We wanted a simple, at a glance view to track the most important assets for long time investors.
 
-We wanted a dashboard that answers one question: **How far are we from the top?**
+It is proven that doing value averaging is more profitable than dollar cost averaging, and this could be a good way to adjust your monthly contributions into your assets and commodities based on the KPI shown on this page.
 
-This tool aggregates data for Crypto, ETFs, and Commodities to provide a unified view of market discounts. It is open-source, free, and built for transparency.
+# Open Source
 
-## Open Source
-
-This project is built with **Next.js**, **Material UI**, and deployed on **Vercel**. 
-The code is available on [GitHub](https://github.com/jonugartemoso/test-isthemarketcheap) for audit and contribution.
+This project is built with **Next.js**, **Material UI**, and deployed on **Vercel**.
 
 
 --- styles/globals.css ---
@@ -1053,11 +1087,11 @@ import { intervalToDuration } from 'date-fns';
  */
 export function calculateStatus(percentBelow) {
     if (percentBelow > 20) {
-        return { label: 'WATCH', color: 'secondary', textColor: '#fff' };
+        return { label: 'CHEAP', color: 'secondary', textColor: '#fff' };
     } else if (percentBelow > 5) {
-        return { label: 'WATCH', color: 'default', textColor: '#fff' };
+        return { label: 'DISCOUNT', color: 'primary', textColor: '#fff' };
     }
-    return { label: '', color: 'default', textColor: '#666' };
+    return { label: 'NEUTRAL', color: 'default', textColor: '#666' };
 }
 
 /**
@@ -1723,8 +1757,8 @@ export default function handler(req, res) {
 METADATA
 ================================================================================
 
-Files Parsed: 26
-Total Characters: 54963
+Files Parsed: 27
+Total Characters: 56368
 
 File List:
 ----------------------------------------
@@ -1734,13 +1768,14 @@ components/layout/Layout.js: 6841 characters
 components/market/AssetTable.js: 6598 characters
 components/market/CategoryFilters.js: 676 characters
 components/market/StatusChip.js: 610 characters
-content/about.md: 593 characters
-content/faq.md: 2802 characters
+content/about.md: 589 characters
+content/faq.md: 3519 characters
 data/assets.json: 6246 characters
+design_doc/deployPlan.md: 682 characters
 design_doc/roadmap.md: 3162 characters
 jsconfig.json: 73 characters
 lib/ColorModeContext.js: 142 characters
-lib/assetHelpers.js: 3584 characters
+lib/assetHelpers.js: 3594 characters
 lib/markdown.js: 1240 characters
 lib/price-service.js: 3207 characters
 lib/theme.js: 4521 characters
@@ -1772,6 +1807,7 @@ test-isthemarketcheap/
 ├── data/
 │   └── assets.json
 ├── design_doc/
+│   ├── deployPlan.md
 │   └── roadmap.md
 ├── lib/
 │   ├── ColorModeContext.js
@@ -1798,6 +1834,6 @@ test-isthemarketcheap/
 └── package.json
 
 Generated at:
-Local: 2025-12-17 07:20:05 
-UTC:   2025-12-17 06:20:05 UTC
-Timestamp: 1765952405
+Local: 2025-12-18 07:11:25 
+UTC:   2025-12-18 06:11:25 UTC
+Timestamp: 1766038285

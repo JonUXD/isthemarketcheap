@@ -20,6 +20,7 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { ColorModeContext } from '../../lib/ColorModeContext';
 import Logo from '../Logo';
+import BrandText from '../BrandText';
 
 export default function Layout({ children, title = "Is the Market Cheap?", searchProps = null }) {
     const theme = useTheme();
@@ -51,20 +52,9 @@ export default function Layout({ children, title = "Is the Market Cheap?", searc
             >
                 <Toolbar sx={{ gap: 4, minHeight: 70 }}>
                     {/* 1. TITLE / LOGO */}
-                    <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '24px' }}>
-                        <Logo width={48} height={48} />
-                        <Typography
-                            variant="h6"
-                            component="div"
-                            sx={{
-                                fontWeight: 800,
-                                letterSpacing: '-0.03em',
-                                whiteSpace: 'nowrap',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            IS THE MARKET CHEAP?
-                        </Typography>
+                    <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Logo width={40} height={40} />
+                        <BrandText height={32} />
                     </Link>
 
                     {/* 2. NAVIGATION TABS */}
