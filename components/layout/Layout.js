@@ -43,7 +43,6 @@ export default function Layout({ children, title = "Is the Market Cheap?", searc
 
             <AppBar
                 position="static"
-                color="transparent"
                 elevation={0}
                 sx={{
                     backgroundColor: theme.palette.background.paper,

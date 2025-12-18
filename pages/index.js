@@ -25,7 +25,7 @@ export default function Home({ assets }) {
         onChange: (e) => setSearchTerm(e.target.value)
       }}
     >
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: 3 }}>
         <CategoryFilters
           selected={filterCategory}
           onChange={setFilterCategory}

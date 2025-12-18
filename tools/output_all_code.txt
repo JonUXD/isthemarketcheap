@@ -426,6 +426,44 @@ a.secondary {
 }
 
 
+--- components/BrandText.js ---
+import React from 'react';
+import { useTheme } from '@mui/material/styles';
+
+export default function BrandText({ height = 24 }) {
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
+
+    const mainColor = isDark ? '#FFFFFF' : '#1A1A1A';
+    const accentColor = isDark ? '#0066FF' : '#600DB5';
+
+    return (
+        <svg
+            height={height}
+            viewBox="0 0 280 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ display: 'block' }}
+        >
+            <text
+                x="0"
+                y="24"
+                fill={mainColor}
+                style={{
+                    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+                    fontSize: '24px',
+                    fontWeight: 900,
+                    letterSpacing: '-0.04em',
+                    textTransform: 'none'
+                }}
+            >
+                Is the market <tspan fill={accentColor}>cheap</tspan>?
+            </text>
+        </svg>
+    );
+}
+
+
 --- components/Logo.js ---
 import React from 'react';
 
@@ -489,6 +527,7 @@ import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { ColorModeContext } from '../../lib/ColorModeContext';
 import Logo from '../Logo';
+import BrandText from '../BrandText';
 
 export default function Layout({ children, title = "Is the Market Cheap?", searchProps = null }) {
     const theme = useTheme();
@@ -521,19 +560,8 @@ export default function Layout({ children, title = "Is the Market Cheap?", searc
                 <Toolbar sx={{ gap: 4, minHeight: 70 }}>
                     {/* 1. TITLE / LOGO */}
                     <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '24px' }}>
-                        <Logo width={48} height={48} />
-                        <Typography
-                            variant="h6"
-                            component="div"
-                            sx={{
-                                fontWeight: 800,
-                                letterSpacing: '-0.03em',
-                                whiteSpace: 'nowrap',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            IS THE MARKET CHEAP?
-                        </Typography>
+                        <Logo width={40} height={40} />
+                        <BrandText height={32} />
                     </Link>
 
                     {/* 2. NAVIGATION TABS */}
@@ -1757,14 +1785,15 @@ export default function handler(req, res) {
 METADATA
 ================================================================================
 
-Files Parsed: 27
-Total Characters: 56368
+Files Parsed: 28
+Total Characters: 57029
 
 File List:
 ----------------------------------------
 README.md: 1899 characters
+components/BrandText.js: 1083 characters
 components/Logo.js: 1142 characters
-components/layout/Layout.js: 6841 characters
+components/layout/Layout.js: 6419 characters
 components/market/AssetTable.js: 6598 characters
 components/market/CategoryFilters.js: 676 characters
 components/market/StatusChip.js: 610 characters
@@ -1800,6 +1829,7 @@ test-isthemarketcheap/
 │   │   ├── AssetTable.js
 │   │   ├── CategoryFilters.js
 │   │   └── StatusChip.js
+│   ├── BrandText.js
 │   └── Logo.js
 ├── content/
 │   ├── about.md
@@ -1834,6 +1864,6 @@ test-isthemarketcheap/
 └── package.json
 
 Generated at:
-Local: 2025-12-18 07:11:25 
-UTC:   2025-12-18 06:11:25 UTC
-Timestamp: 1766038285
+Local: 2025-12-18 09:03:18 
+UTC:   2025-12-18 08:03:18 UTC
+Timestamp: 1766044998
