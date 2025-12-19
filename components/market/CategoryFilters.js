@@ -5,7 +5,7 @@ const CATEGORIES = ['All', 'Crypto', 'ETFs', 'Commodities'];
 
 export default function CategoryFilters({ selected, onChange }) {
     return (
-        <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={1}>
             {CATEGORIES.map((category) => (
                 <Chip
                     key={category}

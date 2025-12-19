@@ -53,7 +53,7 @@ export default function AssetTable({ assets, sortConfig, onSort }) {
                             </TableSortLabel>
                         </TableCell>
                         <TableCell align="right">Price Date</TableCell>
-                        <TableCell align="right">ATH</TableCell>
+                        <TableCell align="right">All-Time High</TableCell>
                         <TableCell align="right">ATH Date</TableCell>
                         <TableCell align="right">
                             <TableSortLabel
