@@ -117,7 +117,7 @@ export default function AssetTable({ assets, sortConfig, onSort }) {
                                     {athDate}
                                 </TableCell>
                                 <TableCell align="right" sx={{ color: 'text.primary', fontFamily: 'monospace', fontWeight: 'bold', fontSize: '1rem' }}>
-                                    {asset.percentBelow > 0 ? `-${asset.percentBelow.toFixed(2)}%` : '0%'}
+                                    {asset.percentBelow > 0.001 ? `-${asset.percentBelow.toFixed(2)}%` : '0.00%'}
                                 </TableCell>
                                 <TableCell align="center">
                                     <StatusChip status={asset.status} />

@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "fetch": "npx tsx tools/fetch-data.mjs",
+    "fetch:save": "npx tsx tools/fetch-data.mjs --update"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
