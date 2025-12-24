@@ -7,6 +7,9 @@ Cheap means that the asset price is below a certain threshold relative to the al
 **DISCOUNT**: 5-20% below all-time high  
 **NEUTRAL**: Within 5% of all-time high
 
+## How often does the data refresh?
+The objective is not to show real time data, but daily data. The data is cached for a period from 1 to 24 hours and refreshed when the next user enters the page. This ensures the data is always less than 24 hours old.
+
 ## Should I buy the asset if the Status says 'CHEAP'?
 No, this is just a comparison with the all time high, it is not a signal to buy or sell. 
 

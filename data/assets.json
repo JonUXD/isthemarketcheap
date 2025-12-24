@@ -11,7 +11,8 @@
     "ath": 689.1699829101562,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-01T05:00:00.000Z"
+    "athDate": "2025-12-01T05:00:00.000Z",
+    "start_date": "2025-01-01"
   },
   {
     "name": "BTC",
@@ -25,7 +26,8 @@
     "ath": 126080,
     "cheap": true,
     "currentPriceDate": "2025-12-13T12:22:51.518Z",
-    "athDate": "2025-10-06T18:57:42.558Z"
+    "athDate": "2025-10-06T18:57:42.558Z",
+    "start_date": "2009-01-03"
   },
   {
     "name": "ETH",
@@ -39,7 +41,8 @@
     "ath": 4946.05,
     "cheap": true,
     "currentPriceDate": "2025-12-13T12:22:52.197Z",
-    "athDate": "2025-08-24T19:21:03.333Z"
+    "athDate": "2025-08-24T19:21:03.333Z",
+    "start_date": "2015-07-30"
   },
   {
     "name": "GLD",
@@ -53,7 +56,8 @@
     "ath": 395.44000244140625,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-12T21:00:00.000Z"
+    "athDate": "2025-12-12T21:00:00.000Z",
+    "start_date": "2004-11-18"
   },
   {
     "name": "SLV",
@@ -67,7 +71,8 @@
     "ath": 57.619998931884766,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-01T05:00:00.000Z"
+    "athDate": "2025-12-01T05:00:00.000Z",
+    "start_date": "2006-04-21"
   },
   {
     "name": "URTH",
@@ -81,7 +86,8 @@
     "ath": 187.85000610351562,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-01T05:00:00.000Z"
+    "athDate": "2025-12-01T05:00:00.000Z",
+    "start_date": "2012-01-01"
   },
   {
     "name": "QQQ",
@@ -95,7 +101,8 @@
     "ath": 629.0700073242188,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:01.000Z",
-    "athDate": "2025-10-01T04:00:00.000Z"
+    "athDate": "2025-10-01T04:00:00.000Z",
+    "start_date": "2025-01-01"
   },
   {
     "name": "VGK",
@@ -109,7 +116,8 @@
     "ath": 83.2300033569336,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-01T05:00:00.000Z"
+    "athDate": "2025-12-01T05:00:00.000Z",
+    "start_date": "2007-01-01"
   },
   {
     "name": "IWM",
@@ -123,7 +131,8 @@
     "ath": 257.79998779296875,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-01T05:00:00.000Z"
+    "athDate": "2025-12-01T05:00:00.000Z",
+    "start_date": "2015-01-01"
   },
   {
     "name": "EEM",
@@ -137,7 +146,8 @@
     "ath": 55.72999954223633,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2007-10-01T04:00:00.000Z"
+    "athDate": "2007-10-01T04:00:00.000Z",
+    "start_date": "2007-01-01"
   },
   {
     "name": "VNQ",
@@ -151,7 +161,8 @@
     "ath": 116.01000213623047,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2021-12-01T05:00:00.000Z"
+    "athDate": "2021-12-01T05:00:00.000Z",
+    "start_date": "2019-01-01"
   },
   {
     "name": "EWJ",
@@ -165,7 +176,8 @@
     "ath": 84.22000122070312,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-01T05:00:00.000Z"
+    "athDate": "2025-12-01T05:00:00.000Z",
+    "start_date": "2025-01-01"
   },
   {
     "name": "MCHI",
@@ -179,7 +191,8 @@
     "ath": 87.5199966430664,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:01.000Z",
-    "athDate": "2021-01-01T05:00:00.000Z"
+    "athDate": "2021-01-01T05:00:00.000Z",
+    "start_date": "2020-01-01"
   },
   {
     "name": "AAXJ",
@@ -193,7 +206,8 @@
     "ath": 94.7699966430664,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:02.000Z",
-    "athDate": "2025-10-01T04:00:00.000Z"
+    "athDate": "2025-10-01T04:00:00.000Z",
+    "start_date": "2020-01-01"
   },
   {
     "name": "BZ=F",
@@ -207,7 +221,8 @@
     "ath": 127.77999877929688,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:58:53.000Z",
-    "athDate": "2008-05-01T04:00:00.000Z"
+    "athDate": "2008-05-01T04:00:00.000Z",
+    "start_date": "2007-01-01"
   },
   {
     "name": "BITW",
@@ -221,6 +236,7 @@
     "ath": 136,
     "cheap": true,
     "currentPriceDate": "2025-12-12T20:59:03.000Z",
-    "athDate": "2021-02-15T05:00:00.000Z"
+    "athDate": "2021-02-15T05:00:00.000Z",
+    "start_date": "2020-12-09"
   }
 ]
