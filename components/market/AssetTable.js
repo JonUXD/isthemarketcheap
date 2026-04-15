@@ -85,11 +85,11 @@ export default function AssetTable({ assets, sortConfig, onSort }) {
                                     scope="row"
                                     sx={{
                                         fontWeight: 'bold',
-                                        fontSize: '1rem',
-                                        maxWidth: { xs: 110, sm: 'none' },
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis'
+                                        fontSize: '0.9rem',
+                                        maxWidth: { xs: 100, sm: 'none' },
+                                        wordBreak: 'break-word',
+                                        whiteSpace: 'normal',
+                                        lineHeight: 1.3,
                                     }}
                                 >
                                     {asset.friendlyName}
