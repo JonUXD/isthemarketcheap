@@ -27,9 +27,9 @@ export default function AssetTable({ assets, sortConfig, onSort }) {
         <TableContainer
             component={Paper}
             elevation={0}
-            sx={{ borderRadius: 2, overflow: 'hidden', border: 1, borderColor: 'divider' }}
+            sx={{ borderRadius: 2, overflowX: 'auto', border: 1, borderColor: 'divider' }}
         >
-            <Table sx={{ minWidth: 650 }} aria-label="asset table">
+            <Table sx={{ minWidth: { xs: 'auto', sm: 650 } }} aria-label="asset table">
                 <TableHead>
                     <TableRow>
                         <TableCell>
@@ -41,9 +41,9 @@ export default function AssetTable({ assets, sortConfig, onSort }) {
                                 Name
                             </TableSortLabel>
                         </TableCell>
-                        <TableCell>Asset Name</TableCell>
-                        <TableCell>Category</TableCell>
-                        <TableCell align="right">
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Asset Name</TableCell>
+                        <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Category</TableCell>
+                        <TableCell align="right" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                             <TableSortLabel
                                 active={sortConfig.key === 'currentPrice'}
                                 direction={sortConfig.key === 'currentPrice' ? sortConfig.direction : 'asc'}
@@ -52,9 +52,9 @@ export default function AssetTable({ assets, sortConfig, onSort }) {
                                 Price
                             </TableSortLabel>
                         </TableCell>
-                        <TableCell align="right">Price Date</TableCell>
-                        <TableCell align="right">All-Time High</TableCell>
-                        <TableCell align="right">ATH Date</TableCell>
+                        <TableCell align="right" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Price Date</TableCell>
+                        <TableCell align="right" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>All-Time High</TableCell>
+                        <TableCell align="right" sx={{ display: { xs: 'none', sm: 'table-cell' } }}>ATH Date</TableCell>
                         <TableCell align="right">
                             <TableSortLabel
                                 active={sortConfig.key === 'percentBelow'}
@@ -80,10 +80,21 @@ export default function AssetTable({ assets, sortConfig, onSort }) {
                                     '&:hover': { backgroundColor: 'action.hover' }
                                 }}
                             >
-                                <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
+                                <TableCell
+                                    component="th"
+                                    scope="row"
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        fontSize: '1rem',
+                                        maxWidth: { xs: 110, sm: 'none' },
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                    }}
+                                >
                                     {asset.friendlyName}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
                                     <Link
                                         href={asset.link}
                                         target="_blank"
@@ -95,23 +106,23 @@ export default function AssetTable({ assets, sortConfig, onSort }) {
                                         {asset.label} ({asset.name})
                                     </Link>
                                 </TableCell>
-                                <TableCell>{asset.category}</TableCell>
-                                <TableCell align="right" sx={{ fontFamily: 'monospace', fontSize: '0.95rem' }}>
+                                <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>{asset.category}</TableCell>
+                                <TableCell align="right" sx={{ fontFamily: 'monospace', fontSize: '0.95rem', display: { xs: 'none', sm: 'table-cell' } }}>
                                     ${asset.currentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </TableCell>
                                 <TableCell
                                     align="right"
-                                    sx={{ color: 'text.secondary', fontSize: '0.875rem', fontFamily: 'monospace' }}
+                                    sx={{ color: 'text.secondary', fontSize: '0.875rem', fontFamily: 'monospace', display: { xs: 'none', sm: 'table-cell' } }}
                                     title={asset.currentPriceDate ? format(new Date(asset.currentPriceDate), 'yyyy-MM-dd') : ''}
                                 >
                                     {priceDate}
                                 </TableCell>
-                                <TableCell align="right" sx={{ fontFamily: 'monospace', fontSize: '0.95rem' }}>
+                                <TableCell align="right" sx={{ fontFamily: 'monospace', fontSize: '0.95rem', display: { xs: 'none', sm: 'table-cell' } }}>
                                     ${asset.ath.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </TableCell>
                                 <TableCell
                                     align="right"
-                                    sx={{ color: 'text.secondary', fontSize: '0.875rem', fontFamily: 'monospace' }}
+                                    sx={{ color: 'text.secondary', fontSize: '0.875rem', fontFamily: 'monospace', display: { xs: 'none', sm: 'table-cell' } }}
                                     title={asset.athDate ? format(new Date(asset.athDate), 'yyyy-MM-dd') : ''}
                                 >
                                     {athDate}

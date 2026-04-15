@@ -60,7 +60,9 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/b
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "fetch": "npx tsx tools/fetch-data.mjs",
+    "fetch:save": "npx tsx tools/fetch-data.mjs --update"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -81,7 +83,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/b
     "eslint-config-next": "16.0.10"
   }
 }
-
 
 --- tools/config.json ---
 {
@@ -138,32 +139,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/b
 
 This document tracks feature ideas, architectural improvements, and complex enhancements that are planned for the future but not yet implemented.
 
-## 🧠 Smart Status Logic (The "Hedge Fund" Upgrade)
-Currently, the app uses a static percentage drop (e.g., >20% = Signal) to determine status. This is a blunt instrument.
-**Goal:** Implement a context-aware system that understands that a -20% drop in S&P 500 is a crisis, while a -20% drop in Bitcoin is normal noise.
-
-### 1. Volatility Column & Filter
-**Calculation**: Annualized Standard Deviation of daily returns over the last 90 days.
-*   **The Feature**: Add a new column "Volatility" with simple tags:
-    *   **LOW** (e.g., Bonds)
-    *   **MED** (e.g., S&P 500)
-    *   **HIGH** (e.g., Crypto)
-*   **The Filter**: Allow users to filter the table by these tags (e.g., "Show me only HIGH volatility assets").
-*   **Note**: This does **NOT** change the "Status" or "% Below ATH" logic. It is purely an additional data point for the user.
-
-### 2. Velocity Signal (The Crash Detector)
-Measure the *speed* of the drop.
-*   **Scenario**: A -20% drop over 2 years is a "Bear Market" (Grind). A -20% drop in 2 weeks is a "Panic" (Opportunity).
-*   **Status**:
-    *   **PANIC**: High velocity drop.
-    *   **GRIND**: Low velocity drop.
-
-### 3. ATH Time Horizon Selector
-**Goal**: Allow users to toggle between "All-Time High", "10-Year High", and "5-Year High".
-*   **The Problem**: Comparing Bitcoin (born 2009) to Gold (trading for centuries) on "All-Time" can be misleading.
-*   **The Solution**: A toggle in the UI.
-*   **Technical Note**: This requires updating the data structure to store multiple ATH values (e.g., `ath_max`, `ath_10y`, `ath_5y`) instead of just one.
-
 ## 📖 Methodology & Trust (New Page)
 **Goal**: Build trust by being transparent about data sources and the creator.
 *   **"How it Works"**: Explain the "Discount Logic" (e.g., why -20% is a signal).
@@ -186,17 +161,138 @@ Measure the *speed* of the drop.
 *   **Historical Charting**: Click an asset to see a chart of its Price vs. ATH over time.
 
 
+--- design_doc/features/fix-daily-granularity.md ---
+// BUG FIX REQUIREMENTS: Yahoo Finance Daily Data Granularity
+//
+// PROBLEM:
+// Yahoo Finance returns monthly data when using `range=max`,
+// even if `interval=1d` is specified. This breaks ATH calculations.
+//
+// SOLUTION OVERVIEW:
+// Do NOT request full historical data.
+// Instead, fetch daily data only from a manually provided ATH date
+// up to the current date.
+//
+// DATA FETCHING RULES:
+// - MUST use `period1` and `period2` (UNIX timestamps)
+// - MUST NOT use `range=max`
+// - interval MUST be `1d`
+// - period1 = athDate (converted to UNIX timestamp)
+// - period2 = current time (UNIX timestamp)
+
+
+
+--- design_doc/features/vercel-monday-refresh.md ---
+// FILE: pages/api/monday.js
+// PURPOSE: Automatic Monday morning refresh to fix weekend stale data
+// DEPLOY: Copy this file to your project, then deploy to Vercel
+
+/**
+ * Vercel Cron Job for Monday Morning Refresh
+ * 
+ * PROBLEM: Your current 24h ISR can leave stale weekend data showing on Monday morning
+ * SOLUTION: This cron forces a fresh data fetch every Monday at market open time
+ * 
+ * HOW IT WORKS:
+ * 1. Every Monday at 2 PM UTC (9 AM Eastern), Vercel calls this endpoint
+ * 2. res.revalidate('/') forces Next.js to rebuild your homepage
+ * 3. During rebuild, getStaticProps() fetches fresh data from Yahoo/CoinGecko
+ * 4. Next visitor sees fresh Monday data instead of stale weekend data
+ * 
+ * SCHEDULE OPTIONS (cron format):
+ * - Monday 9:30 AM Eastern = 13:30 UTC = schedule: '30 13 * * 1'
+ * - Monday 10:00 AM Eastern = 14:00 UTC = schedule: '0 14 * * 1'  ← RECOMMENDED
+ * - Monday 10:30 AM Eastern = 14:30 UTC = schedule: '30 14 * * 1'
+ * - Monday 11:00 AM Eastern = 15:00 UTC = schedule: '0 15 * * 1'
+ * 
+ * YOUR CURRENT SETUP STAYS THE SAME:
+ * - pages/index.js with revalidate: 86400 (24h) continues working
+ * - This just adds a Monday-specific refresh on top
+ * - No UI changes needed, no user buttons
+ */
+
+export default async function handler(req, res) {
+  console.log('🔄 Monday refresh triggered at:', new Date().toISOString());
+  
+  try {
+    // This is the magic line - forces Next.js to rebuild homepage
+    await res.revalidate('/');
+    console.log('✅ Successfully refreshed homepage');
+    
+    return res.json({ 
+      success: true,
+      message: 'Monday market refresh completed',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Monday refresh failed:', error);
+    return res.status(500).json({ 
+      error: 'Revalidation failed',
+      details: error.message 
+    });
+  }
+}
+
+// Vercel Cron configuration - CHANGE TIME IF NEEDED
+export const config = {
+  type: 'experimental-scheduled',
+  schedule: '0 14 * * 1', // ← Monday at 2 PM UTC (9 AM Eastern)
+};
+
+// ============================================================================
+// DEPLOYMENT INSTRUCTIONS:
+// 1. Copy this entire file
+// 2. Create file at: your-project/pages/api/monday.js
+// 3. Deploy to Vercel: git push or vercel --prod
+// 4. Wait for next Monday to see it work
+// 
+// TO TEST IMMEDIATELY (without waiting for Monday):
+// 1. Deploy first: vercel --prod
+// 2. Get your URL: https://your-project.vercel.app
+// 3. Manually trigger: curl https://your-project.vercel.app/api/monday
+// 4. Visit your site to see fresh data
+// 
+// TO MONITOR:
+// 1. Go to Vercel dashboard → your project
+// 2. Click "Functions" tab
+// 3. Look for "monday" function
+// 4. Check logs for execution times
+// ===========================================================================
+
+--- design_doc/features/user-favorites.md ---
+# FEATURE: User Favorites (My Wallet)
+
+## Goal
+Allow users to mark specific assets as "favorites" so they can track their personal portfolio (wallet) at the top of the dashboard.
+
+## Technical Approach: localStorage
+- **Storage**: Use the browser's `localStorage` API to store an array of asset names (e.g., `['SPY', 'BTC']`).
+- **Persistence**: Data remains on the user's device even after closing the browser or refreshing the page.
+- **Privacy**: No server-side storage or user accounts; the data is 100% local to the user.
+
+## User Experience (UX)
+1. **The Star Icon**: Add a star icon to each row in the `AssetTable`.
+2. **"Favorites Only" Toggle**: A new filter chip at the top to toggle between "Show All" and "My Wallet".
+3. **Smart Sorting**: When in "All" view, favorited assets should automatically float to the top of the list.
+
+## Logic Implementation
+- A React `useEffect` hook will load the favorites from memory on page load.
+- A state variable `favorites` will track the current list.
+- The filtering/sorting logic in `AssetTable.js` will be updated to prioritize these favorites.
+
+
 --- content/faq.md ---
 ## Is the market cheap?
 Nobody knows where the market is going, but we know where it has been. We assume that if there was a higher price in the past, there will be a higher one in the future. For all the boggleheads, long time investors and index fund lovers, this web is a simple metric to put the current asset value into perspective.
 
-## What is the logic for the labels?
+## What does 'CHEAP' mean?
+Cheap means that the asset price is below a certain threshold relative to the all time high. That is the only KPI to define whether an asset is cheap. Labels are:
 **CHEAP**: >20% below all-time high
 **DISCOUNT**: 5-20% below all-time high  
 **NEUTRAL**: Within 5% of all-time high
 
-## What does 'CHEAP' mean?
-Cheap means that the asset price is below a certain threshold relative to the all time high. That is the only KPI to define whether an asset is cheap.
+## How often does the data refresh?
+The objective is not to show real time data, but daily data. The data is cached for a period from 1 to 24 hours and refreshed when the next user enters the page. This ensures the data is always less than 24 hours old.
 
 ## Should I buy the asset if the Status says 'CHEAP'?
 No, this is just a comparison with the all time high, it is not a signal to buy or sell. 
@@ -550,7 +646,6 @@ export default function Layout({ children, title = "Is the Market Cheap?", searc
 
             <AppBar
                 position="static"
-                color="transparent"
                 elevation={0}
                 sx={{
                     backgroundColor: theme.palette.background.paper,
@@ -721,7 +816,7 @@ export default function AssetTable({ assets, sortConfig, onSort }) {
                             </TableSortLabel>
                         </TableCell>
                         <TableCell align="right">Price Date</TableCell>
-                        <TableCell align="right">ATH</TableCell>
+                        <TableCell align="right">All-Time High</TableCell>
                         <TableCell align="right">ATH Date</TableCell>
                         <TableCell align="right">
                             <TableSortLabel
@@ -785,7 +880,7 @@ export default function AssetTable({ assets, sortConfig, onSort }) {
                                     {athDate}
                                 </TableCell>
                                 <TableCell align="right" sx={{ color: 'text.primary', fontFamily: 'monospace', fontWeight: 'bold', fontSize: '1rem' }}>
-                                    {asset.percentBelow > 0 ? `-${asset.percentBelow.toFixed(2)}%` : '0%'}
+                                    {asset.percentBelow > 0.001 ? `-${asset.percentBelow.toFixed(2)}%` : '0.00%'}
                                 </TableCell>
                                 <TableCell align="center">
                                     <StatusChip status={asset.status} />
@@ -834,7 +929,7 @@ const CATEGORIES = ['All', 'Crypto', 'ETFs', 'Commodities'];
 
 export default function CategoryFilters({ selected, onChange }) {
     return (
-        <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
+        <Stack direction="row" spacing={1}>
             {CATEGORIES.map((category) => (
                 <Chip
                     key={category}
@@ -854,19 +949,29 @@ export default function CategoryFilters({ selected, onChange }) {
 import axios from 'axios';
 
 // Helper to fetch Yahoo Finance data
-async function fetchYahooPrice(symbol) {
+// Helper to fetch Yahoo Finance data
+async function fetchYahooPrice(asset) {
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=max`;
-    const response = await axios.get(url);
+    const symbol = asset.name;
+    const ts = Date.now();
+
+    // Convert start_date to UNIX timestamp (Period 1)
+    const p1 = Math.floor(new Date(asset.start_date || '2000-01-01').getTime() / 1000);
+    // Current time (Period 2)
+    const p2 = Math.floor(Date.now() / 1000);
+
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&period1=${p1}&period2=${p2}&ts=${ts}`;
+    const response = await axios.get(url, { timeout: 10000 });
     const result = response.data.chart.result[0];
 
     if (!result) return null;
 
-    const quotes = result.indicators.quote[0];
-    const timestamps = result.timestamp;
-    const prices = quotes.close;
+    const indicators = result.indicators;
+    // FETCH RULE: Always use raw CLOSE for ATH per user requirement
+    const prices = (indicators.quote && indicators.quote[0].close) || [];
+    const timestamps = result.timestamp || [];
 
-    // Find ATH and its date
+    // Find historical ATH and its date from the daily granularity data
     let ath = -1;
     let athIndex = -1;
 
@@ -878,13 +983,19 @@ async function fetchYahooPrice(symbol) {
     });
 
     const currentPrice = result.meta.regularMarketPrice;
-    // Yahoo timestamps are in seconds
     const currentPriceDate = new Date(result.meta.regularMarketTime * 1000).toISOString();
-    const athDate = athIndex !== -1 ? new Date(timestamps[athIndex] * 1000).toISOString() : null;
+
+    let athDate = athIndex !== -1 ? new Date(timestamps[athIndex] * 1000).toISOString() : null;
+
+    // SYNC: If current live price is higher than historical ceiling, update ATH
+    if (currentPrice >= ath) {
+      ath = currentPrice;
+      athDate = currentPriceDate;
+    }
 
     return { currentPrice, ath, currentPriceDate, athDate };
   } catch (error) {
-    console.error(`Error fetching Yahoo data for ${symbol}:`, error.message);
+    console.error(`Error fetching Yahoo data for ${asset.name}:`, error.message);
     return null;
   }
 }
@@ -896,7 +1007,7 @@ async function fetchCoinGeckoPrice(id) {
 
     // Fetch current price and last updated time
     const priceUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_last_updated_at=true`;
-    const priceRes = await axios.get(priceUrl);
+    const priceRes = await axios.get(priceUrl, { timeout: 10000 });
     const priceData = priceRes.data[coinId];
 
     const currentPrice = priceData.usd;
@@ -906,7 +1017,7 @@ async function fetchCoinGeckoPrice(id) {
 
     // Fetch ATH and ATH date
     const marketUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinId}`;
-    const marketRes = await axios.get(marketUrl);
+    const marketRes = await axios.get(marketUrl, { timeout: 10000 });
     const marketData = marketRes.data[0];
 
     const ath = marketData.ath;
@@ -921,36 +1032,53 @@ async function fetchCoinGeckoPrice(id) {
 }
 
 export async function fetchAssetPrices(assets) {
-  const updatedAssets = [];
+  const CONCURRENCY_LIMIT = 5;
+  const results = [];
+  const queue = [...assets];
 
-  for (const asset of assets) {
-    let data = null;
+  // Worker function to process the queue
+  async function worker() {
+    while (queue.length > 0) {
+      const asset = queue.shift();
+      // If queue is empty, shift() returns undefined, so break
+      if (!asset) break;
 
-    if (asset.api_source === 'yahoo') {
-      data = await fetchYahooPrice(asset.name);
-    } else if (asset.api_source === 'coingecko') {
-      data = await fetchCoinGeckoPrice(asset.name);
+      try {
+        let data = null;
+        if (asset.api_source === 'yahoo') {
+          data = await fetchYahooPrice(asset);
+        } else if (asset.api_source === 'coingecko') {
+          data = await fetchCoinGeckoPrice(asset.name);
+        }
+
+        if (data) {
+          console.log(`✅ Updated ${asset.name}: $${data.currentPrice} (${data.currentPriceDate})`);
+          results.push({
+            ...asset,
+            currentPrice: data.currentPrice,
+            ath: data.ath,
+            cheap: data.currentPrice < data.ath,
+            currentPriceDate: data.currentPriceDate,
+            athDate: data.athDate,
+            percentBelow: ((data.ath - data.currentPrice) / data.ath) * 100,
+            label: data.fullLabel || asset.label
+          });
+        } else {
+          console.warn(`⚠️ Failed to fetch ${asset.name}, using stale data.`);
+          results.push(asset); // Keep stale if fetch fails
+        }
+      } catch (error) {
+        console.error(`Failed to update ${asset.name}:`, error.message);
+        results.push(asset);
+      }
     }
-
-    if (data) {
-      updatedAssets.push({
-        ...asset,
-        currentPrice: data.currentPrice,
-        ath: data.ath,
-        cheap: data.currentPrice < data.ath,
-        currentPriceDate: data.currentPriceDate,
-        athDate: data.athDate,
-        label: data.fullLabel || asset.label
-      });
-    } else {
-      updatedAssets.push(asset);
-    }
-
-    // Slight delay to be polite to APIs during build
-    await new Promise(r => setTimeout(r, 200));
   }
 
-  return updatedAssets;
+  // Start workers and wait for all to finish
+  const workers = Array.from({ length: CONCURRENCY_LIMIT }, worker);
+  await Promise.all(workers);
+
+  return results;
 }
 
 
@@ -1296,7 +1424,8 @@ export function getFaqContent() {
     "ath": 689.1699829101562,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-01T05:00:00.000Z"
+    "athDate": "2025-12-01T05:00:00.000Z",
+    "start_date": "2025-01-01"
   },
   {
     "name": "BTC",
@@ -1310,7 +1439,8 @@ export function getFaqContent() {
     "ath": 126080,
     "cheap": true,
     "currentPriceDate": "2025-12-13T12:22:51.518Z",
-    "athDate": "2025-10-06T18:57:42.558Z"
+    "athDate": "2025-10-06T18:57:42.558Z",
+    "start_date": "2009-01-03"
   },
   {
     "name": "ETH",
@@ -1324,7 +1454,8 @@ export function getFaqContent() {
     "ath": 4946.05,
     "cheap": true,
     "currentPriceDate": "2025-12-13T12:22:52.197Z",
-    "athDate": "2025-08-24T19:21:03.333Z"
+    "athDate": "2025-08-24T19:21:03.333Z",
+    "start_date": "2015-07-30"
   },
   {
     "name": "GLD",
@@ -1338,7 +1469,8 @@ export function getFaqContent() {
     "ath": 395.44000244140625,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-12T21:00:00.000Z"
+    "athDate": "2025-12-12T21:00:00.000Z",
+    "start_date": "2004-11-18"
   },
   {
     "name": "SLV",
@@ -1352,7 +1484,8 @@ export function getFaqContent() {
     "ath": 57.619998931884766,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-01T05:00:00.000Z"
+    "athDate": "2025-12-01T05:00:00.000Z",
+    "start_date": "2006-04-21"
   },
   {
     "name": "URTH",
@@ -1366,7 +1499,8 @@ export function getFaqContent() {
     "ath": 187.85000610351562,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-01T05:00:00.000Z"
+    "athDate": "2025-12-01T05:00:00.000Z",
+    "start_date": "2012-01-01"
   },
   {
     "name": "QQQ",
@@ -1380,7 +1514,8 @@ export function getFaqContent() {
     "ath": 629.0700073242188,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:01.000Z",
-    "athDate": "2025-10-01T04:00:00.000Z"
+    "athDate": "2025-10-01T04:00:00.000Z",
+    "start_date": "2025-01-01"
   },
   {
     "name": "VGK",
@@ -1394,7 +1529,8 @@ export function getFaqContent() {
     "ath": 83.2300033569336,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-01T05:00:00.000Z"
+    "athDate": "2025-12-01T05:00:00.000Z",
+    "start_date": "2007-01-01"
   },
   {
     "name": "IWM",
@@ -1408,7 +1544,8 @@ export function getFaqContent() {
     "ath": 257.79998779296875,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-01T05:00:00.000Z"
+    "athDate": "2025-12-01T05:00:00.000Z",
+    "start_date": "2015-01-01"
   },
   {
     "name": "EEM",
@@ -1422,7 +1559,8 @@ export function getFaqContent() {
     "ath": 55.72999954223633,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2007-10-01T04:00:00.000Z"
+    "athDate": "2007-10-01T04:00:00.000Z",
+    "start_date": "2007-01-01"
   },
   {
     "name": "VNQ",
@@ -1436,7 +1574,8 @@ export function getFaqContent() {
     "ath": 116.01000213623047,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2021-12-01T05:00:00.000Z"
+    "athDate": "2021-12-01T05:00:00.000Z",
+    "start_date": "2019-01-01"
   },
   {
     "name": "EWJ",
@@ -1450,7 +1589,8 @@ export function getFaqContent() {
     "ath": 84.22000122070312,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:00.000Z",
-    "athDate": "2025-12-01T05:00:00.000Z"
+    "athDate": "2025-12-01T05:00:00.000Z",
+    "start_date": "2025-01-01"
   },
   {
     "name": "MCHI",
@@ -1464,7 +1604,8 @@ export function getFaqContent() {
     "ath": 87.5199966430664,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:01.000Z",
-    "athDate": "2021-01-01T05:00:00.000Z"
+    "athDate": "2021-01-01T05:00:00.000Z",
+    "start_date": "2020-01-01"
   },
   {
     "name": "AAXJ",
@@ -1478,7 +1619,8 @@ export function getFaqContent() {
     "ath": 94.7699966430664,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:00:02.000Z",
-    "athDate": "2025-10-01T04:00:00.000Z"
+    "athDate": "2025-10-01T04:00:00.000Z",
+    "start_date": "2020-01-01"
   },
   {
     "name": "BZ=F",
@@ -1492,7 +1634,8 @@ export function getFaqContent() {
     "ath": 127.77999877929688,
     "cheap": true,
     "currentPriceDate": "2025-12-12T21:58:53.000Z",
-    "athDate": "2008-05-01T04:00:00.000Z"
+    "athDate": "2008-05-01T04:00:00.000Z",
+    "start_date": "2007-01-01"
   },
   {
     "name": "BITW",
@@ -1506,7 +1649,724 @@ export function getFaqContent() {
     "ath": 136,
     "cheap": true,
     "currentPriceDate": "2025-12-12T20:59:03.000Z",
+    "athDate": "2021-02-15T05:00:00.000Z",
+    "start_date": "2020-12-09"
+  }
+]
+
+--- data/backups/assets-backup-2025-12-24T15-33-54-031Z.json ---
+[
+  {
+    "name": "BTC",
+    "friendlyName": "Bitcoin",
+    "category": "Crypto",
+    "label": "Bitcoin",
+    "sector": "Crypto",
+    "link": "https://www.coingecko.com/en/coins/bitcoin",
+    "api_source": "coingecko",
+    "currentPrice": 86895,
+    "ath": 126080,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:53.418Z",
+    "athDate": "2025-10-06T18:57:42.558Z",
+    "start_date": "2009-01-03",
+    "percentBelow": 31.079473350253807
+  },
+  {
+    "name": "SLV",
+    "friendlyName": "Silver",
+    "category": "Commodity ETF",
+    "label": "Silver ETF",
+    "sector": "Silver",
+    "link": "https://finance.yahoo.com/quote/SLV",
+    "api_source": "yahoo",
+    "currentPrice": 64.25,
+    "ath": 64.83999633789062,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:49.000Z",
+    "athDate": "2025-12-23T14:30:00.000Z",
+    "start_date": "2006-04-21",
+    "percentBelow": 0.9099265441288253
+  },
+  {
+    "name": "GLD",
+    "friendlyName": "Gold",
+    "category": "Commodity ETF",
+    "label": "Gold ETF",
+    "sector": "Gold",
+    "link": "https://finance.yahoo.com/quote/GLD",
+    "api_source": "yahoo",
+    "currentPrice": 410.52,
+    "ath": 413.6400146484375,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:52.000Z",
+    "athDate": "2025-12-23T14:30:00.000Z",
+    "start_date": "2004-11-18",
+    "percentBelow": 0.7542825978983907
+  },
+  {
+    "name": "ETH",
+    "friendlyName": "Ethereum",
+    "category": "Crypto",
+    "label": "Ethereum",
+    "sector": "Crypto",
+    "link": "https://www.coingecko.com/en/coins/ethereum",
+    "api_source": "coingecko",
+    "currentPrice": 2915.72,
+    "ath": 4946.05,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:00.000Z",
+    "athDate": "2025-08-24T19:21:03.333Z",
+    "start_date": "2015-07-30",
+    "percentBelow": 41.04952436792997
+  },
+  {
+    "name": "SPY",
+    "friendlyName": "S&P 500",
+    "category": "ETF",
+    "label": "S&P 500 ETF",
+    "sector": "Index Fund",
+    "link": "https://finance.yahoo.com/quote/SPY",
+    "api_source": "yahoo",
+    "currentPrice": 689.075,
+    "ath": 689.1699829101562,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:51.000Z",
+    "athDate": "2025-12-11T14:30:00.000Z",
+    "start_date": "1993-01-22",
+    "percentBelow": 0.013782218104613385
+  },
+  {
+    "name": "URTH",
+    "friendlyName": "World Stocks",
+    "category": "ETF",
+    "label": "MSCI World ETF",
+    "sector": "Global Stocks",
+    "link": "https://finance.yahoo.com/quote/URTH",
+    "api_source": "yahoo",
+    "currentPrice": 187.465,
+    "ath": 187.85000610351562,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:49.000Z",
+    "athDate": "2025-12-11T14:30:00.000Z",
+    "start_date": "2012-01-01",
+    "percentBelow": 0.20495400106799155
+  },
+  {
+    "name": "VGK",
+    "friendlyName": "Europe",
+    "category": "ETF",
+    "label": "Europe ETF",
+    "sector": "Developed Europe",
+    "link": "https://finance.yahoo.com/quote/VGK",
+    "api_source": "yahoo",
+    "currentPrice": 83.775,
+    "ath": 83.7750015258789,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:33.000Z",
+    "athDate": "2025-12-24T15:33:33.000Z",
+    "start_date": "2005-03-04",
+    "percentBelow": 0.000001821401220857393
+  },
+  {
+    "name": "QQQ",
+    "friendlyName": "Nasdaq 100",
+    "category": "ETF",
+    "label": "Nasdaq 100",
+    "sector": "Tech / Growth",
+    "link": "https://finance.yahoo.com/quote/QQQ",
+    "api_source": "yahoo",
+    "currentPrice": 622.47,
+    "ath": 635.77001953125,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:52.000Z",
+    "athDate": "2025-10-29T13:30:00.000Z",
+    "start_date": "1999-03-10",
+    "percentBelow": 2.0919544996877972
+  },
+  {
+    "name": "VNQ",
+    "friendlyName": "Real Estate",
+    "category": "ETF",
+    "label": "Real Estate ETF",
+    "sector": "Real Estate / REITs",
+    "link": "https://finance.yahoo.com/quote/VNQ",
+    "api_source": "yahoo",
+    "currentPrice": 88.725,
+    "ath": 116.01000213623047,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:47.000Z",
+    "athDate": "2021-12-31T14:30:00.000Z",
+    "start_date": "2004-09-23",
+    "percentBelow": 23.51952558727627
+  },
+  {
+    "name": "IWM",
+    "friendlyName": "Small Caps",
+    "category": "ETF",
+    "label": "Russell 2000",
+    "sector": "Small Cap US",
+    "link": "https://finance.yahoo.com/quote/IWM",
+    "api_source": "yahoo",
+    "currentPrice": 252.405,
+    "ath": 257.79998779296875,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:49.000Z",
+    "athDate": "2025-12-11T14:30:00.000Z",
+    "start_date": "2000-05-22",
+    "percentBelow": 2.0927028892263944
+  },
+  {
+    "name": "EWJ",
+    "friendlyName": "Japan",
+    "category": "ETF",
+    "label": "Japan ETF",
+    "sector": "Japan",
+    "link": "https://finance.yahoo.com/quote/EWJ",
+    "api_source": "yahoo",
+    "currentPrice": 80.99,
+    "ath": 84.87000274658203,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:36.000Z",
+    "athDate": "2025-12-15T14:30:00.000Z",
+    "start_date": "1996-03-12",
+    "percentBelow": 4.571700979164038
+  },
+  {
+    "name": "EEM",
+    "friendlyName": "Emerging Markets",
+    "category": "ETF",
+    "label": "Emerging Markets",
+    "sector": "Emerging Markets",
+    "link": "https://finance.yahoo.com/quote/EEM",
+    "api_source": "yahoo",
+    "currentPrice": 54.385,
+    "ath": 57.959999084472656,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:25.000Z",
+    "athDate": "2021-02-17T14:30:00.000Z",
+    "start_date": "2003-04-11",
+    "percentBelow": 6.168045446761216
+  },
+  {
+    "name": "BITW",
+    "friendlyName": "Crypto Index",
+    "category": "ETF",
+    "label": "Bitwise 10 Crypto Index",
+    "sector": "Crypto",
+    "link": "https://finance.yahoo.com/quote/BITW",
+    "api_source": "yahoo",
+    "currentPrice": 58.41,
+    "ath": 139.00999450683594,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:18:37.000Z",
+    "athDate": "2020-12-16T14:30:00.000Z",
+    "start_date": "2020-12-09",
+    "percentBelow": 57.98143852374037
+  },
+  {
+    "name": "MCHI",
+    "friendlyName": "China",
+    "category": "ETF",
+    "label": "China ETF",
+    "sector": "China",
+    "link": "https://finance.yahoo.com/quote/MCHI",
+    "api_source": "yahoo",
+    "currentPrice": 60.645,
+    "ath": 97.19000244140625,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:33:09.000Z",
+    "athDate": "2021-02-17T14:30:00.000Z",
+    "start_date": "2011-03-29",
+    "percentBelow": 37.60160667084913
+  },
+  {
+    "name": "AAXJ",
+    "friendlyName": "Asia ex-Japan",
+    "category": "ETF",
+    "label": "Asia ex-Japan",
+    "sector": "Asia",
+    "link": "https://finance.yahoo.com/quote/AAXJ",
+    "api_source": "yahoo",
+    "currentPrice": 92.42,
+    "ath": 102.08000183105469,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:30:29.000Z",
+    "athDate": "2021-02-17T14:30:00.000Z",
+    "start_date": "2008-08-13",
+    "percentBelow": 9.463167768200343
+  },
+  {
+    "name": "BZ=F",
+    "friendlyName": "Brent Crude",
+    "category": "Commodity",
+    "label": "Brent Crude Oil",
+    "sector": "Energy",
+    "link": "https://finance.yahoo.com/quote/BZ=F",
+    "api_source": "yahoo",
+    "currentPrice": 61.89,
+    "ath": 146.0800018310547,
+    "cheap": true,
+    "currentPriceDate": "2025-12-24T15:22:53.000Z",
+    "athDate": "2008-07-03T13:30:00.000Z",
+    "start_date": "2007-01-01",
+    "percentBelow": 57.63280447410085
+  }
+]
+
+--- data/backups/assets-backup-2025-12-23T21-51-45-644Z.json ---
+[
+  {
+    "name": "GLD",
+    "friendlyName": "Gold",
+    "category": "Commodity ETF",
+    "label": "Gold ETF",
+    "sector": "Gold",
+    "link": "https://finance.yahoo.com/quote/GLD",
+    "api_source": "yahoo",
+    "currentPrice": 413.64,
+    "ath": 413.6400146484375,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2025-12-23T21:00:00.000Z"
+  },
+  {
+    "name": "URTH",
+    "friendlyName": "World Stocks",
+    "category": "ETF",
+    "label": "MSCI World ETF",
+    "sector": "Global Stocks",
+    "link": "https://finance.yahoo.com/quote/URTH",
+    "api_source": "yahoo",
+    "currentPrice": 187.21,
+    "ath": 187.2100067138672,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2025-12-23T21:00:00.000Z"
+  },
+  {
+    "name": "BTC",
+    "friendlyName": "Bitcoin",
+    "category": "Crypto",
+    "label": "Bitcoin",
+    "sector": "Crypto",
+    "link": "https://www.coingecko.com/en/coins/bitcoin",
+    "api_source": "coingecko",
+    "currentPrice": 87625,
+    "ath": 126080,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:51:10.000Z",
+    "athDate": "2025-10-06T18:57:42.558Z"
+  },
+  {
+    "name": "ETH",
+    "friendlyName": "Ethereum",
+    "category": "Crypto",
+    "label": "Ethereum",
+    "sector": "Crypto",
+    "link": "https://www.coingecko.com/en/coins/ethereum",
+    "api_source": "coingecko",
+    "currentPrice": 2969.21,
+    "ath": 4946.05,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:51:11.000Z",
+    "athDate": "2025-08-24T19:21:03.333Z"
+  },
+  {
+    "name": "SLV",
+    "friendlyName": "Silver",
+    "category": "Commodity ETF",
+    "label": "Silver ETF",
+    "sector": "Silver",
+    "link": "https://finance.yahoo.com/quote/SLV",
+    "api_source": "yahoo",
+    "currentPrice": 64.84,
+    "ath": 64.84,
+    "cheap": false,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2025-12-23T21:00:00.000Z"
+  },
+  {
+    "name": "SPY",
+    "friendlyName": "S&P 500",
+    "category": "ETF",
+    "label": "S&P 500 ETF",
+    "sector": "Index Fund",
+    "link": "https://finance.yahoo.com/quote/SPY",
+    "api_source": "yahoo",
+    "currentPrice": 687.96,
+    "ath": 687.9600219726562,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2025-12-23T21:00:00.000Z"
+  },
+  {
+    "name": "QQQ",
+    "friendlyName": "Nasdaq 100",
+    "category": "ETF",
+    "label": "Nasdaq 100",
+    "sector": "Tech / Growth",
+    "link": "https://finance.yahoo.com/quote/QQQ",
+    "api_source": "yahoo",
+    "currentPrice": 622.11,
+    "ath": 628.2605590820312,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2025-10-01T04:00:00.000Z"
+  },
+  {
+    "name": "VGK",
+    "friendlyName": "Europe",
+    "category": "ETF",
+    "label": "Europe ETF",
+    "sector": "Developed Europe",
+    "link": "https://finance.yahoo.com/quote/VGK",
+    "api_source": "yahoo",
+    "currentPrice": 83.61,
+    "ath": 83.61000061035156,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2025-12-23T21:00:00.000Z"
+  },
+  {
+    "name": "EEM",
+    "friendlyName": "Emerging Markets",
+    "category": "ETF",
+    "label": "Emerging Markets",
+    "sector": "Emerging Markets",
+    "link": "https://finance.yahoo.com/quote/EEM",
+    "api_source": "yahoo",
+    "currentPrice": 54.31,
+    "ath": 54.5197868347168,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2025-10-01T04:00:00.000Z"
+  },
+  {
+    "name": "MCHI",
+    "friendlyName": "China",
+    "category": "ETF",
+    "label": "China ETF",
+    "sector": "China",
+    "link": "https://finance.yahoo.com/quote/MCHI",
+    "api_source": "yahoo",
+    "currentPrice": 60.67,
+    "ath": 78.49166107177734,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2021-01-01T05:00:00.000Z"
+  },
+  {
+    "name": "VNQ",
+    "friendlyName": "Real Estate",
+    "category": "ETF",
+    "label": "Real Estate ETF",
+    "sector": "Real Estate / REITs",
+    "link": "https://finance.yahoo.com/quote/VNQ",
+    "api_source": "yahoo",
+    "currentPrice": 88.18,
+    "ath": 98.20964813232422,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2021-12-01T05:00:00.000Z"
+  },
+  {
+    "name": "EWJ",
+    "friendlyName": "Japan",
+    "category": "ETF",
+    "label": "Japan ETF",
+    "sector": "Japan",
+    "link": "https://finance.yahoo.com/quote/EWJ",
+    "api_source": "yahoo",
+    "currentPrice": 81.14,
+    "ath": 81.80899810791016,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2025-12-15T14:30:00.000Z"
+  },
+  {
+    "name": "AAXJ",
+    "friendlyName": "Asia ex-Japan",
+    "category": "ETF",
+    "label": "Asia ex-Japan",
+    "sector": "Asia",
+    "link": "https://finance.yahoo.com/quote/AAXJ",
+    "api_source": "yahoo",
+    "currentPrice": 92.26,
+    "ath": 93.6064453125,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:01.000Z",
+    "athDate": "2025-10-01T04:00:00.000Z"
+  },
+  {
+    "name": "BZ=F",
+    "friendlyName": "Brent Crude",
+    "category": "Commodity",
+    "label": "Brent Crude Oil",
+    "sector": "Energy",
+    "link": "https://finance.yahoo.com/quote/BZ=F",
+    "api_source": "yahoo",
+    "currentPrice": 62.02,
+    "ath": 127.77999877929688,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:38:19.000Z",
+    "athDate": "2008-05-01T04:00:00.000Z"
+  },
+  {
+    "name": "IWM",
+    "friendlyName": "Small Caps",
+    "category": "ETF",
+    "label": "Russell 2000",
+    "sector": "Small Cap US",
+    "link": "https://finance.yahoo.com/quote/IWM",
+    "api_source": "yahoo",
+    "currentPrice": 252.08,
+    "ath": 256.9383544921875,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2025-12-11T14:30:00.000Z"
+  },
+  {
+    "name": "BITW",
+    "friendlyName": "Crypto Index",
+    "category": "ETF",
+    "label": "Bitwise 10 Crypto Index",
+    "sector": "Crypto",
+    "link": "https://finance.yahoo.com/quote/BITW",
+    "api_source": "yahoo",
+    "currentPrice": 59,
+    "ath": 136,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T20:59:57.000Z",
     "athDate": "2021-02-15T05:00:00.000Z"
+  }
+]
+
+--- data/backups/assets-backup-2025-12-23T21-11-32-462Z.json ---
+[
+  {
+    "name": "ETH",
+    "friendlyName": "Ethereum",
+    "category": "Crypto",
+    "label": "Ethereum",
+    "sector": "Crypto",
+    "link": "https://www.coingecko.com/en/coins/ethereum",
+    "api_source": "coingecko",
+    "currentPrice": 2959.72,
+    "ath": 4946.05,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:10:51.000Z",
+    "athDate": "2025-08-24T19:21:03.333Z"
+  },
+  {
+    "name": "BTC",
+    "friendlyName": "Bitcoin",
+    "category": "Crypto",
+    "label": "Bitcoin",
+    "sector": "Crypto",
+    "link": "https://www.coingecko.com/en/coins/bitcoin",
+    "api_source": "coingecko",
+    "currentPrice": 87519,
+    "ath": 126080,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:11:00.000Z",
+    "athDate": "2025-10-06T18:57:42.558Z"
+  },
+  {
+    "name": "GLD",
+    "friendlyName": "Gold",
+    "category": "Commodity ETF",
+    "label": "Gold ETF",
+    "sector": "Gold",
+    "link": "https://finance.yahoo.com/quote/GLD",
+    "api_source": "yahoo",
+    "currentPrice": 413.56,
+    "ath": 413.56,
+    "cheap": false,
+    "currentPriceDate": "2025-12-23T20:59:59.000Z",
+    "athDate": "2025-12-23T20:59:59.000Z"
+  },
+  {
+    "name": "SLV",
+    "friendlyName": "Silver",
+    "category": "Commodity ETF",
+    "label": "Silver ETF",
+    "sector": "Silver",
+    "link": "https://finance.yahoo.com/quote/SLV",
+    "api_source": "yahoo",
+    "currentPrice": 64.84,
+    "ath": 64.84,
+    "cheap": false,
+    "currentPriceDate": "2025-12-23T20:59:59.000Z",
+    "athDate": "2025-12-23T20:59:59.000Z"
+  },
+  {
+    "name": "SPY",
+    "friendlyName": "S&P 500",
+    "category": "ETF",
+    "label": "S&P 500 ETF",
+    "sector": "Index Fund",
+    "link": "https://finance.yahoo.com/quote/SPY",
+    "api_source": "yahoo",
+    "currentPrice": 687.94,
+    "ath": 687.9400024414062,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2025-12-23T21:00:00.000Z"
+  },
+  {
+    "name": "QQQ",
+    "friendlyName": "Nasdaq 100",
+    "category": "ETF",
+    "label": "Nasdaq 100",
+    "sector": "Tech / Growth",
+    "link": "https://finance.yahoo.com/quote/QQQ",
+    "api_source": "yahoo",
+    "currentPrice": 622.11,
+    "ath": 628.2605590820312,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2025-10-01T04:00:00.000Z"
+  },
+  {
+    "name": "VGK",
+    "friendlyName": "Europe",
+    "category": "ETF",
+    "label": "Europe ETF",
+    "sector": "Developed Europe",
+    "link": "https://finance.yahoo.com/quote/VGK",
+    "api_source": "yahoo",
+    "currentPrice": 83.59,
+    "ath": 83.59,
+    "cheap": false,
+    "currentPriceDate": "2025-12-23T20:59:54.000Z",
+    "athDate": "2025-12-23T20:59:54.000Z"
+  },
+  {
+    "name": "IWM",
+    "friendlyName": "Small Caps",
+    "category": "ETF",
+    "label": "Russell 2000",
+    "sector": "Small Cap US",
+    "link": "https://finance.yahoo.com/quote/IWM",
+    "api_source": "yahoo",
+    "currentPrice": 252.06,
+    "ath": 252.73248291015625,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T20:59:59.000Z",
+    "athDate": "2025-12-01T05:00:00.000Z"
+  },
+  {
+    "name": "URTH",
+    "friendlyName": "World Stocks",
+    "category": "ETF",
+    "label": "MSCI World ETF",
+    "sector": "Global Stocks",
+    "link": "https://finance.yahoo.com/quote/URTH",
+    "api_source": "yahoo",
+    "currentPrice": 187.22,
+    "ath": 187.22000122070312,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T20:59:59.000Z",
+    "athDate": "2025-12-23T20:59:59.000Z"
+  },
+  {
+    "name": "EEM",
+    "friendlyName": "Emerging Markets",
+    "category": "ETF",
+    "label": "Emerging Markets",
+    "sector": "Emerging Markets",
+    "link": "https://finance.yahoo.com/quote/EEM",
+    "api_source": "yahoo",
+    "currentPrice": 54.32,
+    "ath": 54.5197868347168,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T20:59:59.000Z",
+    "athDate": "2025-10-01T04:00:00.000Z"
+  },
+  {
+    "name": "VNQ",
+    "friendlyName": "Real Estate",
+    "category": "ETF",
+    "label": "Real Estate ETF",
+    "sector": "Real Estate / REITs",
+    "link": "https://finance.yahoo.com/quote/VNQ",
+    "api_source": "yahoo",
+    "currentPrice": 88.18,
+    "ath": 98.20963287353516,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T20:59:56.000Z",
+    "athDate": "2021-12-01T05:00:00.000Z"
+  },
+  {
+    "name": "EWJ",
+    "friendlyName": "Japan",
+    "category": "ETF",
+    "label": "Japan ETF",
+    "sector": "Japan",
+    "link": "https://finance.yahoo.com/quote/EWJ",
+    "api_source": "yahoo",
+    "currentPrice": 81.155,
+    "ath": 81.155,
+    "cheap": false,
+    "currentPriceDate": "2025-12-23T20:59:58.000Z",
+    "athDate": "2025-12-23T20:59:58.000Z"
+  },
+  {
+    "name": "MCHI",
+    "friendlyName": "China",
+    "category": "ETF",
+    "label": "China ETF",
+    "sector": "China",
+    "link": "https://finance.yahoo.com/quote/MCHI",
+    "api_source": "yahoo",
+    "currentPrice": 60.67,
+    "ath": 78.4916763305664,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:00.000Z",
+    "athDate": "2021-01-01T05:00:00.000Z"
+  },
+  {
+    "name": "BITW",
+    "friendlyName": "Crypto Index",
+    "category": "ETF",
+    "label": "Bitwise 10 Crypto Index",
+    "sector": "Crypto",
+    "link": "https://finance.yahoo.com/quote/BITW",
+    "api_source": "yahoo",
+    "currentPrice": 59.03,
+    "ath": 136,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T20:59:16.000Z",
+    "athDate": "2021-02-15T05:00:00.000Z"
+  },
+  {
+    "name": "BZ=F",
+    "friendlyName": "Brent Crude",
+    "category": "Commodity",
+    "label": "Brent Crude Oil",
+    "sector": "Energy",
+    "link": "https://finance.yahoo.com/quote/BZ=F",
+    "api_source": "yahoo",
+    "currentPrice": 61.94,
+    "ath": 127.77999877929688,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T20:58:55.000Z",
+    "athDate": "2008-05-01T04:00:00.000Z"
+  },
+  {
+    "name": "AAXJ",
+    "friendlyName": "Asia ex-Japan",
+    "category": "ETF",
+    "label": "Asia ex-Japan",
+    "sector": "Asia",
+    "link": "https://finance.yahoo.com/quote/AAXJ",
+    "api_source": "yahoo",
+    "currentPrice": 92.26,
+    "ath": 93.6064453125,
+    "cheap": true,
+    "currentPriceDate": "2025-12-23T21:00:01.000Z",
+    "athDate": "2025-10-01T04:00:00.000Z"
   }
 ]
 
@@ -1616,7 +2476,7 @@ export async function getStaticProps() {
 
 
 --- pages/index.js ---
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import fs from 'fs';
 import path from 'path';
 import { fetchAssetPrices } from '../lib/price-service';
@@ -1624,12 +2484,18 @@ import { processAssets } from '../lib/assetHelpers';
 import Layout from '../components/layout/Layout';
 import CategoryFilters from '../components/market/CategoryFilters';
 import AssetTable from '../components/market/AssetTable';
-import { Container } from '@mui/material';
+import { Container, Box, Typography } from '@mui/material';
 
-export default function Home({ assets }) {
+export default function Home({ assets, lastRefreshed }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
   const [sortConfig, setSortConfig] = useState({ key: 'percentBelow', direction: 'desc' });
+
+  // Hydration fix for client-side time
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Process assets using helper function
   const processedAssets = React.useMemo(() => {
@@ -1638,16 +2504,43 @@ export default function Home({ assets }) {
 
   return (
     <Layout
+      lastRefreshed={lastRefreshed}
       searchProps={{
         value: searchTerm,
         onChange: (e) => setSearchTerm(e.target.value)
       }}
     >
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <CategoryFilters
-          selected={filterCategory}
-          onChange={setFilterCategory}
-        />
+      <Container maxWidth="xl" sx={{ py: 3 }}>
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          mb: 3, // Moved margin here from CategoryFilters
+          flexWrap: 'wrap',
+          gap: 2
+        }}>
+          <CategoryFilters
+            selected={filterCategory}
+            onChange={setFilterCategory}
+          />
+          {lastRefreshed && isMounted && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+                backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                px: 1.5,
+                py: 0.5,
+                borderRadius: 1,
+                fontFamily: 'monospace',
+                fontWeight: 500,
+                height: 'fit-content' // Ensures it doesn't stretch
+              }}
+            >
+              Last refreshed: {new Date(lastRefreshed).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </Typography>
+          )}
+        </Box>
         <AssetTable
           assets={processedAssets}
           sortConfig={sortConfig}
@@ -1669,11 +2562,12 @@ export async function getStaticProps() {
   return {
     props: {
       assets: updatedAssets,
+      lastRefreshed: new Date().toISOString(),
     },
     // Next.js will attempt to re-generate the page:
     // - When a request comes in
     // - At most once every 86400 seconds (24 hours)
-    revalidate: 86400,
+    revalidate: 14400,
   };
 }
 
@@ -1763,7 +2657,10 @@ import { Html, Head, Main, NextScript } from "next/document";
 export default function Document() {
   return (
     <Html lang="en">
-      <Head />
+      <Head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.png" type="image/png" />
+      </Head>
       <body>
         <Main />
         <NextScript />
@@ -1785,43 +2682,49 @@ export default function handler(req, res) {
 METADATA
 ================================================================================
 
-Files Parsed: 28
-Total Characters: 57029
+Files Parsed: 34
+Total Characters: 83495
 
 File List:
 ----------------------------------------
 README.md: 1899 characters
 components/BrandText.js: 1083 characters
 components/Logo.js: 1142 characters
-components/layout/Layout.js: 6419 characters
-components/market/AssetTable.js: 6598 characters
-components/market/CategoryFilters.js: 676 characters
+components/layout/Layout.js: 6383 characters
+components/market/AssetTable.js: 6615 characters
+components/market/CategoryFilters.js: 661 characters
 components/market/StatusChip.js: 610 characters
 content/about.md: 589 characters
-content/faq.md: 3519 characters
-data/assets.json: 6246 characters
+content/faq.md: 3748 characters
+data/assets.json: 6758 characters
+data/backups/assets-backup-2025-12-23T21-11-32-462Z.json: 6203 characters
+data/backups/assets-backup-2025-12-23T21-51-45-644Z.json: 6229 characters
+data/backups/assets-backup-2025-12-24T15-33-54-031Z.json: 7423 characters
 design_doc/deployPlan.md: 682 characters
-design_doc/roadmap.md: 3162 characters
+design_doc/features/fix-daily-granularity.md: 607 characters
+design_doc/features/user-favorites.md: 1098 characters
+design_doc/features/vercel-monday-refresh.md: 2815 characters
+design_doc/roadmap.md: 1585 characters
 jsconfig.json: 73 characters
 lib/ColorModeContext.js: 142 characters
 lib/assetHelpers.js: 3594 characters
 lib/markdown.js: 1240 characters
-lib/price-service.js: 3207 characters
+lib/price-service.js: 4688 characters
 lib/theme.js: 4521 characters
-package.json: 649 characters
+package.json: 752 characters
 pages/_app.js: 889 characters
-pages/_document.js: 233 characters
+pages/_document.js: 379 characters
 pages/about.js: 1740 characters
 pages/api/hello.js: 171 characters
 pages/faq.js: 2654 characters
-pages/index.js: 1911 characters
+pages/index.js: 3142 characters
 styles/Home.module.css: 2426 characters
 styles/globals.css: 608 characters
 tools/config.json: 346 characters
 
 Directory Structure:
 ----------------------------------------
-test-isthemarketcheap/
+isthemarketcheap/
 ├── components/
 │   ├── layout/
 │   │   └── Layout.js
@@ -1835,8 +2738,16 @@ test-isthemarketcheap/
 │   ├── about.md
 │   └── faq.md
 ├── data/
+│   ├── backups/
+│   │   ├── assets-backup-2025-12-23T21-11-32-462Z.json
+│   │   ├── assets-backup-2025-12-23T21-51-45-644Z.json
+│   │   └── assets-backup-2025-12-24T15-33-54-031Z.json
 │   └── assets.json
 ├── design_doc/
+│   ├── features/
+│   │   ├── fix-daily-granularity.md
+│   │   ├── user-favorites.md
+│   │   └── vercel-monday-refresh.md
 │   ├── deployPlan.md
 │   └── roadmap.md
 ├── lib/
@@ -1864,6 +2775,6 @@ test-isthemarketcheap/
 └── package.json
 
 Generated at:
-Local: 2025-12-18 09:03:18 
-UTC:   2025-12-18 08:03:18 UTC
-Timestamp: 1766044998
+Local: 2026-04-15 13:17:18 
+UTC:   2026-04-15 11:17:18 UTC
+Timestamp: 1776251838
